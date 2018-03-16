@@ -1,3 +1,0 @@
-username='YOUR_TEACHABLE_USERNAME'
-password='YOUR_TEACHABLE_PASSWORD'
-site_url='http://YOUR_TEACHABLE_URL'
