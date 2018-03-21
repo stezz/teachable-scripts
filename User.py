@@ -1,15 +1,10 @@
+# -*- coding: utf-8 -*-
 from operator import itemgetter
 import sys
-import shelve
-import os.path
 import time
-class User:
-    teachableAPI = None
-    email = None
-    name = None
-    id = None
-    reportCard = None
+import datetime
 
+class User:
     def __init__(self, teachableAPI, email):
         self.teachableAPI = teachableAPI
         email = email.strip()
@@ -23,19 +18,17 @@ class User:
             self.id = userData.get('id')
             self.reportCard = self.teachableAPI.getUserReportCard(self.id)
 
-    def generateSummaryStats(self, school, hideFreeCourses):
-        description = '###### Report of ' + self.name.encode('utf-8') + ' (' + self.email.encode('utf-8') + ') #########\n'
+    def generateSummaryStats(self, writer, school, hideFreeCourses):
+        writer.addFullLineString('###### Report of ' + self.name.encode('utf-8') + ' (' + self.email.encode('utf-8') + ') #########')
         for key, courseData in self.reportCard.iteritems():
             course = school.getCourseWithId(courseData.get('course_id'))
 
             if hideFreeCourses == False or course.getPrice() > 0:
                 percentage = courseData.get('percent_complete')
-                description += ' - Course : ' + course.name + ' - ' + str(percentage) + ' %\n'
+                writer.addFullLineString(' - Course : ' + course.name + ' - ' + str(percentage) + ' %')
 
-        description += '###### end Report of ' + self.name.encode('utf-8') + ' (' + self.email.encode('utf-8') + ') #########'
+        writer.addFullLineString('###### end Report of ' + self.name.encode('utf-8') + ' (' + self.email.encode('utf-8') + ') #########')
         #user_ordered_list = sorted(output, key=itemgetter('course_percentage'), reverse=True)
-
-        return description
 
     # def generate_student_progress_list(self,course, output):
     #     get_course_curriculum(course_id)
@@ -77,4 +70,28 @@ class User:
     #                 return lecture_name, section_name
     #     return '', ''
 
-
+    def generateDetailedStats(self, writer, school):
+        writer.startNewLine()
+        writer.addItem("Utilisateur")
+        writer.addItem("Date")
+        writer.addItem("Cours")
+        writer.addItem("Chapitre")
+        writer.addItem(u'Durée')
+        writer.endCurrentLine()
+        stats = self.teachableAPI.getUserCoursesReport(self.id)
+        lecturesStats = stats.get('lecture_progresses')
+        for lectureProgress in lecturesStats:
+            writer.startNewLine()
+            completedDate = datetime.datetime.strptime(lectureProgress.get('completed_at'),'%Y-%m-%dT%H:%M:%SZ')
+            courseId =  lectureProgress.get('course_id')
+            lectureId = lectureProgress.get('lecture_id')
+            course = school.getCourseWithId(courseId)
+            lecture = course.getLectureWithId(lectureId)
+            if lecture:
+                writer.addItem(self.name)
+                writer.addItem(completedDate.strftime("%Y-%m-%d %H:%M:%S"))
+                writer.addItem(course.name)
+                writer.addItem(lecture.name)
+                writer.addItem(lecture.getDurationAsText())
+                # print lectureProgress.get('completed_at') + ': Lecture termine : ' + lecture.name + ' dure : ' + str(lecture.duration)
+            writer.endCurrentLine()

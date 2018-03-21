@@ -51,8 +51,12 @@ class TeachableAPI:
                 os.remove(CACHE_PATH)
                 print('Cache file dumped!')
 
+    def getUserCoursesReport(self,userId):
+        path = self.URL_COURSE_REPORT.replace('USER_ID',str(userId))
+        return self.loadJsonAt(path,True).get('report')
+
     def getCourseSections(self, courseId):
-        url_course_curriculum = self.URL_CURRICULUM.replace('COURSE_ID', courseId)
+        url_course_curriculum = self.URL_CURRICULUM.replace('COURSE_ID', str(courseId))
         return self.loadJsonAt(url_course_curriculum).get('lecture_sections')
 
     def getCourseList(self):

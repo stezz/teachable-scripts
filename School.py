@@ -2,11 +2,9 @@ import TeachableAPI
 from Course import Course
 
 class School:
-    teachableAPI = None
-    courseList = []
-
     def __init__(self, teachableAPI):
         self.teachableAPI = teachableAPI
+        self.courseList = []
 
     def getCourseList(self):
         if len(self.courseList) == 0:
