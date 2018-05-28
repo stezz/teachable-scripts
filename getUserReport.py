@@ -6,34 +6,30 @@ from TeachableAPI import TeachableAPI
 from School import School
 from Writer import FileWriter,CSVFileWriter,Writer
 
-parser = argparse.ArgumentParser(description='''Get your student status in Teachable. ''', epilog="""---""")
-parser.add_argument('--hidefree', type=int, default=0, help='0: show/1: hide free courses ')
+parser = argparse.ArgumentParser(description='''Get your student sessions list in Teachable. ''', epilog="""---""")
 parser.add_argument('emails', type=str, nargs=1, default='', help='list of emails (separated with commas and without spaces)')
-parser.add_argument('output_file', nargs='?', default='', help='Output file')
-parser.add_argument('format', nargs='?', default='txt', help='Output format (txt or csv)')
+parser.add_argument('--output_file', nargs='?', default='', help='Output file')
+parser.add_argument('--format', nargs='?', default='txt', help='Output format (txt or csv)')
+# parser.add_argument('--hidefree', type=int, default=0, help='0: show/1: hide free courses ')
 
 args = parser.parse_args()
 
 #print args
 
-HIDE_FREE_COURSES = args.hidefree  # set to 0 to show all
-
-if args.format:
-    output_format = args.format
-    print 'Output will be saved as ' + output_format
+# HIDE_FREE_COURSES = args.hidefree  # set to 0 to show all
 
 output_file = ''
 if args.output_file:
     output_file = args.output_file
     print 'Output will be saved to ' + output_file
 if output_file:
-    if output_format == 'csv':
+    print 'Output will be saved as ' + args.format
+    if args.format == 'csv':
         writer = CSVFileWriter(output_file,';')
     else:
         writer = FileWriter(output_file)
 else:
     writer = Writer()
-
 
 api = TeachableAPI()
 school = School(api)

@@ -1,5 +1,6 @@
 # coding: utf8
 import codecs
+import sys
 
 class Writer:
     def __init__(self):
@@ -47,10 +48,10 @@ class Writer:
         print ""
 
     def _writeItem(self,item, separator):
-        print separator + item
+        sys.stdout.write(separator + item)
 
     def _writeEndOfLine(self):
-        print "\n"
+        print ""
 
     def _closeOutput(self):
         print ''
