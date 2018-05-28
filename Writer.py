@@ -5,7 +5,7 @@ class Writer:
     def __init__(self):
         self.data = []
         self.currentLine = None
-        self.separator = ' '
+        self.separator = ','
 
     def startNewLine(self):
         if self.currentLine:

@@ -1,4 +1,5 @@
 import requests
+import json
 import sys
 import shelve
 import os.path
@@ -14,6 +15,8 @@ class TeachableAPI:
     URL_COURSE_REPORT = '/api/v1/users/USER_ID/course_report'
     URL_CURRICULUM = '/api/v1/courses/COURSE_ID/curriculum'
     URL_COURSE_PRODUCTS = '/api/v1/courses/COURSE_ID/products'
+    URL_IMPORT_USERS = '/api/v1/import/users'
+    URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments'
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -33,7 +36,8 @@ class TeachableAPI:
             self.session = requests.Session()
             # get username and password from the secrets.py file
             self.session.auth = (username, password)
-            self.session.headers.update({'x-test': 'true'})
+            # self.session.headers.update({'x-test': 'true'})
+            self.session.headers.update({'Origin': site_url})
         else:
             print 'Missing secrets.py file with login data'
             sys.exit(1)
@@ -53,18 +57,18 @@ class TeachableAPI:
 
     def getUserCoursesReport(self,userId):
         path = self.URL_COURSE_REPORT.replace('USER_ID',str(userId))
-        return self.loadJsonAt(path,True).get('report')
+        return self._getJsonAt(path, True).get('report')
 
     def getCourseSections(self, courseId):
         url_course_curriculum = self.URL_CURRICULUM.replace('COURSE_ID', str(courseId))
-        return self.loadJsonAt(url_course_curriculum).get('lecture_sections')
+        return self._getJsonAt(url_course_curriculum).get('lecture_sections')
 
     def getCourseList(self):
-        course_info = self.loadJsonAt(self.URL_COURSES)
+        course_info = self._getJsonAt(self.URL_COURSES)
         return course_info.get('courses')
 
     def findUser(self, email):
-        userList = self.loadJsonAt(self.URL_FIND_USER + email).get('users')
+        userList = self._getJsonAt(self.URL_FIND_USER + email).get('users')
         if len(userList) == 0:
             return None
         else:
@@ -79,14 +83,43 @@ class TeachableAPI:
 
     def getCourseProducts(self, courseId):
         path = self.URL_COURSE_PRODUCTS.replace('COURSE_ID', courseId)
-        result = self.loadJsonAt(path)
+        result = self._getJsonAt(path)
         return result.get('products')
 
     def getUserReportCard(self,userId):
         path = self.URL_REPORT_CARD.replace('USER_ID',str(userId))
-        return self.loadJsonAt(path,False)
+        return self._getJsonAt(path, False)
 
-    def loadJsonAt(self,path, withCache=True):
+    def addUsersUsersToSchool(self, usersArray, courseId):
+        usersJsonArray = []
+        for userRow in usersArray:
+            userJson = {
+                "email":userRow[0],
+                "name":userRow[1],
+                "password":None,
+                "role":"student",
+                "course_id":courseId
+            }
+            usersJsonArray.append(userJson)
+        print(usersJsonArray)
+        payload = {
+            "user_list" :usersJsonArray,
+            "course_id": courseId,
+            "coupon_code": None,
+            "users_role": "student",
+            "author_bio_data": {}
+        }
+        return self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+
+    def enrollUsersToCourse(self, userIdArray, courseId):
+        responses = []
+        for userRow in userIdArray:
+            path = self.URL_ENROLL_USER.replace('USER_ID', str(userRow[0]))
+            response = self._postJsonAt(path, json.dumps({"course_id": int(courseId)}))
+            responses.append(response)
+        return responses
+
+    def _getJsonAt(self, path, withCache=True):
         if withCache and path in self.cachedData:
             print("Found cached data for " + path)
             return self.cachedData[path]
@@ -100,3 +133,13 @@ class TeachableAPI:
             if withCache:
                 self.cachedData[path] = jsonData
             return jsonData
+
+    def _postJsonAt(self, path, jsonBody):
+        fullUrl = self.siteUrl + path
+        print("Uploading POST data to " + fullUrl)
+        print("JSON Body : ")
+        jsonTxt = json.loads(jsonBody)
+        self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
+        print(json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': ')))
+        jsonResponseBody = self.session.post(fullUrl, data=jsonBody)
+        return jsonResponseBody.text
