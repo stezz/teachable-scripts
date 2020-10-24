@@ -141,10 +141,16 @@ With the function getLeaderboardCSV.py you can get the Leaderboard, i.e. the Sum
       -h, --help            show this help message and exit
       --search [SEARCH], -s [SEARCH]
                             Searches specific text in the name of the course
+      --output-file [FILENAME], -o [FILENAME
+                            Specify the output file
    
 By default this will generate leaderboards for all the courses in your school. If you want to generate the leaderboard for a specific course you can use
 
     python getLeaderboardCSV.py -s PART_OF_THE_NAME_OF_YOUR_COURSE
+    
+You can also specify an output file name by using the -o:
+
+    python getLeaderboardCSV.py -o leaders.csv
     
 
 ## Cache and rate limits
