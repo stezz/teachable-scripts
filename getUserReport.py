@@ -10,7 +10,12 @@ parser = argparse.ArgumentParser(description='''Get your Teachable students
 report. 
 
 By default it will generate a progress summary report of all the students that
-are enrolled in all your courses. Pay attention if you have a lot of students
+are enrolled in all your courses. 
+
+This is very similar to using getLeaderboardCSV.py: while this allows to
+specify a specific set of users, the other one allows to specify a course.
+
+Pay attention if you have a lot of students
 because this will be rate limited at some point''')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('--emails', '-e', type=str, nargs='+', default='',

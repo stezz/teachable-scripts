@@ -60,7 +60,7 @@ class TeachableAPI:
                 os.remove(CACHE_PATH)
                 print('Cache file dumped!')
 
-    def getLeaderboardCSV(self,course):
+    def getLeaderboardCSV(self, course, filename):
         '''Gets a course JSON dict as input'''
         PER_PAGE = '100000' # includes in the leaderboard CSV as many as PER_PAGE users
         courseId = course.get('id')
@@ -68,7 +68,9 @@ class TeachableAPI:
         path = self.URL_LEADERBOARD.replace('COURSE_ID',str(courseId)).replace('PER_PAGE',str(PER_PAGE))
         fullUrl = self.siteUrl + path
         r = self.session.get(fullUrl, allow_redirects=True)
-        open('leaderboard_{course}.csv'.format(course=course_name), 'wb').write(r.content)
+        if filename == '':
+            filename = 'leaderboard_{course}.csv'.format(course=course_name)
+        open(filename, 'wb').write(r.content)
 
     def getUserCoursesReport(self,userId):
         path = self.URL_COURSE_REPORT.replace('USER_ID',str(userId))
