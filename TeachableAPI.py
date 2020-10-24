@@ -10,6 +10,7 @@ class TeachableAPI:
     session = None
     cachedData = None
     URL_COURSES = '/api/v1/courses'
+    URL_GET_ALL_USERS = '/api/v1/users'
     URL_FIND_USER = '/api/v1/users?name_or_email_cont='
     URL_REPORT_CARD = '/api/v1/users/USER_ID/report_card'
     URL_COURSE_REPORT = '/api/v1/users/USER_ID/course_report'
@@ -39,7 +40,7 @@ class TeachableAPI:
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
         else:
-            print 'Missing secrets.py file with login data'
+            print('Missing secrets.py file with login data')
             sys.exit(1)
 
 
@@ -68,11 +69,29 @@ class TeachableAPI:
         return course_info.get('courses')
 
     def findUser(self, email):
+        '''Searches for a specific user, the API uses the same endpoint, for
+        one or many'''
         userList = self._getJsonAt(self.URL_FIND_USER + email).get('users')
         if len(userList) == 0:
             return None
         else:
             return userList[0]
+
+    def findMultiUser(self, email):
+        '''Searches for multiple users, the API uses the same endpoint for one
+        or many'''
+        userList = self._getJsonAt(self.URL_FIND_USER + email).get('users')
+        if len(userList) == 0:
+            return None
+        else:
+            return userList
+
+    def getAllUsers(self):
+        userList = self._getJsonAt(self.URL_GET_ALL_USERS).get('users')
+        if len(userList) == 0:
+            return None
+        else:
+            return userList
 
     def getCoursePrice(self,courseId):
         products = self.getCourseProducts(courseId)
@@ -82,7 +101,7 @@ class TeachableAPI:
             return 0
 
     def getCourseProducts(self, courseId):
-        path = self.URL_COURSE_PRODUCTS.replace('COURSE_ID', courseId)
+        path = self.URL_COURSE_PRODUCTS.replace('COURSE_ID', str(courseId))
         result = self._getJsonAt(path)
         return result.get('products')
 
@@ -121,14 +140,14 @@ class TeachableAPI:
 
     def _getJsonAt(self, path, withCache=True):
         if withCache and path in self.cachedData:
-            print("Found cached data for " + path)
+            print(("Found cached data for " + path))
             return self.cachedData[path]
         else:
             fullUrl = self.siteUrl + path
-            print("Downloading data from " + fullUrl)
+            print(("Downloading data from " + fullUrl))
             jsonData = self.session.get(fullUrl).json()
             if jsonData.get('error'):
-                print 'Check Teachable credentials'
+                print('Check Teachable credentials')
                 sys.exit(1)
             if withCache:
                 self.cachedData[path] = jsonData
@@ -136,10 +155,10 @@ class TeachableAPI:
 
     def _postJsonAt(self, path, jsonBody):
         fullUrl = self.siteUrl + path
-        print("Uploading POST data to " + fullUrl)
+        print(("Uploading POST data to " + fullUrl))
         print("JSON Body : ")
         jsonTxt = json.loads(jsonBody)
         self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
-        print(json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': ')))
+        print((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
         jsonResponseBody = self.session.post(fullUrl, data=jsonBody)
         return jsonResponseBody.text

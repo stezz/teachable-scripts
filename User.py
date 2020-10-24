@@ -10,7 +10,7 @@ class User:
         email = email.strip()
         userData = self.teachableAPI.findUser(email)
         if not userData:
-            print 'There is no user with that email'
+            print('There is no user with that email')
             sys.exit(1)
         else:
             self.email = email
@@ -18,16 +18,25 @@ class User:
             self.id = userData.get('id')
             self.reportCard = self.teachableAPI.getUserReportCard(self.id)
 
-    def generateSummaryStats(self, writer, school, hideFreeCourses):
-        writer.addFullLineString('###### Report of ' + self.name.encode('utf-8') + ' (' + self.email.encode('utf-8') + ') #########')
-        for key, courseData in self.reportCard.iteritems():
-            course = school.getCourseWithId(courseData.get('course_id'))
-
-            if hideFreeCourses == False or course.getPrice() > 0:
+    def generateSummaryStats(self, writer, school, writeheader):
+        if writeheader:
+            writer.startNewLine()
+            writer.addItem("User")
+            writer.addItem("Email")
+            writer.addItem("Course")
+            writer.addItem("Completed (%)")
+            writer.endCurrentLine()
+        for (key, courseData) in self.reportCard.items():
+            if key != 'meta':
+                courseID = courseData.get('course_id')
+                course = school.getCourseWithId(courseID)
                 percentage = courseData.get('percent_complete')
-                writer.addFullLineString(' - Course : ' + course.name + ' - ' + str(percentage) + ' %')
+                writer.addItem(self.name)
+                writer.addItem(self.email)
+                writer.addItem(course.name)
+                writer.addItem(str(percentage))
+                writer.endCurrentLine()
 
-        writer.addFullLineString('###### end Report of ' + self.name.encode('utf-8') + ' (' + self.email.encode('utf-8') + ') #########')
         #user_ordered_list = sorted(output, key=itemgetter('course_percentage'), reverse=True)
 
     # def generate_student_progress_list(self,course, output):
@@ -70,14 +79,16 @@ class User:
     #                 return lecture_name, section_name
     #     return '', ''
 
-    def generateDetailedStats(self, writer, school):
-        writer.startNewLine()
-        writer.addItem("Utilisateur")
-        writer.addItem("Date")
-        writer.addItem("Cours")
-        writer.addItem("Chapitre")
-        writer.addItem(u'Durée')
-        writer.endCurrentLine()
+    def generateDetailedStats(self, writer, school, writeheader):
+        if writeheader:
+            writer.startNewLine()
+            writer.addItem("User")
+            writer.addItem("Email")
+            writer.addItem("Date")
+            writer.addItem("Course")
+            writer.addItem("Chapter")
+            writer.addItem('Duration')
+            writer.endCurrentLine()
         stats = self.teachableAPI.getUserCoursesReport(self.id)
         lecturesStats = stats.get('lecture_progresses')
         for lectureProgress in lecturesStats:
@@ -89,6 +100,7 @@ class User:
             lecture = course.getLectureWithId(lectureId)
             if lecture:
                 writer.addItem(self.name)
+                writer.addItem(self.email)
                 writer.addItem(completedDate.strftime("%Y-%m-%d %H:%M:%S"))
                 writer.addItem(course.name)
                 writer.addItem(lecture.name)

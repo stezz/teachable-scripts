@@ -45,16 +45,16 @@ class Writer:
         self._closeOutput()
 
     def _prepareOutput(self):
-        print ""
+        print("")
 
     def _writeItem(self,item, separator):
-        sys.stdout.write(separator + item)
+        sys.stdout.write(separator + item.decode('utf-8'))
 
     def _writeEndOfLine(self):
-        print ""
+        print("")
 
     def _closeOutput(self):
-        print ''
+        print('')
 
 
 class FileWriter(Writer):
@@ -64,11 +64,10 @@ class FileWriter(Writer):
         self.file = None
 
     def _prepareOutput(self):
-        self.file = open(self.filePath,'w')
+        self.file = codecs.open(self.filePath,'w', 'utf-8')
 
     def _writeItem(self,item, separator):
-        self.file.write(separator + item)
-
+        self.file.write(separator + item.decode('utf-8'))
     def _writeEndOfLine(self):
         self.file.write('\n')
 

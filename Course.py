@@ -1,3 +1,4 @@
+import datetime
 class Course:
     def __init__(self, teachableAPI, courseData):
         self.teachableAPI = teachableAPI
@@ -52,21 +53,7 @@ class CourseSectionLecture:
             self.duration += attachment.get('duration')
 
     def getDurationAsText(self):
-        s = self.duration
-        durationAsText = ''
-        h = s / 3600
-        if h > 0:
-            durationAsText+= str(h) + 'h '
-        s -= h * 3600
-        m = s / 60
-        if m > 0:
-            durationAsText+= str(m) + 'min '
-        s -= m * 60
-        if s > 0:
-            durationAsText+= str(s) + 's '
-
-
-        return durationAsText
+        return str(datetime.timedelta(seconds=self.duration))
 
 
 

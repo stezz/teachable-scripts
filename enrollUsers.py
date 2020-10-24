@@ -21,6 +21,6 @@ inputFile = args.input_file[0]
 with open(inputFile, 'rb') as csvfile:
     usersCsvReader = csv.reader(csvfile, delimiter=args.csv_delimiter, quotechar='|')
     api = TeachableAPI()
-    print(api.enrollUsersToCourse(usersCsvReader,courseId))
+    print((api.enrollUsersToCourse(usersCsvReader,courseId)))
 
 
