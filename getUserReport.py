@@ -67,14 +67,11 @@ if args.search:
 if not users_mails:
     users_mails = [x.get('email') for x in api.getAllUsers()]
 
-print(args.detailed)
 for user_mail in users_mails:
     user = User(api, user_mail)
     if args.detailed is True:
-        print('detailed')
         user.generateDetailedStats(writer, school, writeheader)
     else:
-        print('summary')
         user.generateSummaryStats(writer, school, writeheader)
     if writeheader:
         writeheader = False
