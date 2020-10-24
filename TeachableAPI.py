@@ -15,9 +15,11 @@ class TeachableAPI:
     URL_REPORT_CARD = '/api/v1/users/USER_ID/report_card'
     URL_COURSE_REPORT = '/api/v1/users/USER_ID/course_report'
     URL_CURRICULUM = '/api/v1/courses/COURSE_ID/curriculum'
+    URL_FIND_COURSE = '/api/v1/courses?name_cont='
     URL_COURSE_PRODUCTS = '/api/v1/courses/COURSE_ID/products'
     URL_IMPORT_USERS = '/api/v1/import/users'
     URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments'
+    URL_LEADERBOARD = '/api/v1/courses/COURSE_ID/leaderboard.csv?page=1&per=PER_PAGE'
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -51,10 +53,22 @@ class TeachableAPI:
     def expire_cache(self,CACHE_PATH):
         if os.path.isfile(CACHE_PATH):
             cache_antiquity = time.time() - os.path.getctime(CACHE_PATH)
-            MAXIMUM_CACHE_DURATION = 60 * 60 * 24 * 7  # One week
+            MAXIMUM_CACHE_DURATION = 60 * 60 * 24 * 1  # One day (rate limits
+            #                                            are not that
+            #                                            aggressive I hope)
             if cache_antiquity > MAXIMUM_CACHE_DURATION:
                 os.remove(CACHE_PATH)
                 print('Cache file dumped!')
+
+    def getLeaderboardCSV(self,course):
+        '''Gets a course JSON dict as input'''
+        PER_PAGE = '100000' # includes in the leaderboard CSV as many as PER_PAGE users
+        courseId = course.get('id')
+        course_name = course.get('name')
+        path = self.URL_LEADERBOARD.replace('COURSE_ID',str(courseId)).replace('PER_PAGE',str(PER_PAGE))
+        fullUrl = self.siteUrl + path
+        r = self.session.get(fullUrl, allow_redirects=True)
+        open('leaderboard_{course}.csv'.format(course=course_name), 'wb').write(r.content)
 
     def getUserCoursesReport(self,userId):
         path = self.URL_COURSE_REPORT.replace('USER_ID',str(userId))
@@ -92,6 +106,15 @@ class TeachableAPI:
             return None
         else:
             return userList
+
+    def findCourses(self, course):
+        '''Searches for courses containing the specific text'''
+        courseList = self._getJsonAt(self.URL_FIND_COURSE +
+                     course).get('courses')
+        if len(courseList) == 0:
+            return None
+        else:
+            return courseList
 
     def getCoursePrice(self,courseId):
         products = self.getCourseProducts(courseId)
