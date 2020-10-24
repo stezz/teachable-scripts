@@ -84,44 +84,49 @@ If some of thoses users are already enrolled in the course, Teachable API curren
 
 Typing --help will show the parameters info
 
-    usage: getUserReport.py [-h] [--output_file [OUTPUT_FILE]] [--format [FORMAT]]
-                            emails
-    
-    Get your student sessions list in Teachable.
-    
-    positional arguments:
-      emails                list of emails (separated with commas and without
-                            spaces)
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      --output_file [OUTPUT_FILE]
-                            Output file
-      --format [FORMAT]     Output format (txt or csv)
-    
-    ---
-    
-It should receive at least one parameter: the student's email or emails (separated by commas)
+  usage: getUserReport.py [-h] [--emails EMAILS [EMAILS ...]] [--output_file [OUTPUT_FILE]] [--search [SEARCH]] [--format [FORMAT]] [--detailed]
 
-    python getUserReport.py STUDENT_EMAIL
-    python getUserReport.py STUDENT_EMAIL1,STUDENT_EMAIL2
+  Get your Teachable students report. By default it will generate a progress summary report of all the students that are enrolled in all your courses. Pay
+  attention if you have a lot of students because this will be rate limited at some point
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --emails EMAILS [EMAILS ...], -e EMAILS [EMAILS ...]
+                        list of emails (separated by spaces) - cannot be used with -s
+    --output_file [OUTPUT_FILE], -o [OUTPUT_FILE]
+                        Output file
+    --search [SEARCH], -s [SEARCH]
+                        Searches specific text in name or email. For instance -s @gmail.com or -s *@gmail.com will look for all the users that have an
+                        email ending in @gmail.com. Or -s Jack will look for all the users that have Jack in their name (or surname) - cannot be used with
+                        -e
+    --format [FORMAT], -f [FORMAT]
+                        Output format (txt or csv)
+    --detailed, -d        Get detailed progress report
     
-It will output something like this
+By default it will generate a progress summary report on screen of all the students that are enrolled in all your courses.
 
-    Utilisateur,Date,Cours,Chapitre,Durée
-    Maxime Britto,2017-10-12 15:38:00,Créez une app pour iOS 11,Bilan et suite,53s 
-    Maxime Britto,2017-10-12 15:36:22,Créez une app pour iOS 11,Finaliser notre première app,3min 49s 
-It has been created for french laws regarding students proof of presence. This is why it lists each session with student name, timestamp, course, and duration of the session. 
+If you add a specific email it will generate the student summary for the specific email or emails on screen.
 
+    python getUserReport.py -e STUDENT_EMAIL
+    python getUserReport.py -e STUDENT_EMAIL1 STUDENT_EMAIL2
+    
 Specifying the output file won't output anything to the screen and will save it into a file:
 
-    python getUserReport.py STUDENT_EMAIL --output_file FILENAME.txt
+    python getUserReport.py -e STUDENT_EMAIL -o FILENAME.txt
     
 You also can choose to export as a csv file (comma separated values):
 
-    python getUserReport.py STUDENT_EMAIL --output_file FILENAME.csv --format csv
+    python getUserReport.py -e STUDENT_EMAIL -o FILENAME.csv -f csv
     
+If you want a detailed report of the activity of a student or all the students just use the -d flag. For instance:
+   
+    python getUserReport.py -e STUDENT_EMAIL -o FILENAME.csv -f csv -d
 
+If you want to do a lazy search of all the students with a specific name or email you can use the flag -s (which can't be used with the flag -e). For instance if you want to search for all the users with a @gmail.com address or named Martin:
+
+    python getUserReport.py -s @gmail.com -o FILENAME.csv -f csv -d
+    python getUserReport.py -s Martin -o FILENAME.csv -f csv -d
+   
 ## Cache and rate limits
 To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.  
 The cache path can be changed modifying the variable CACHE_PATH, by default it creates a file called teachable_cache.out in the same folder
