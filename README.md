@@ -126,7 +126,27 @@ If you want to do a lazy search of all the students with a specific name or emai
 
     python getUserReport.py -s @gmail.com -o FILENAME.csv -f csv -d
     python getUserReport.py -s Martin -o FILENAME.csv -f csv -d
+    
+## Get Leaderboard directly from Teachable site
+
+With the function getLeaderboardCSV.py you can get the Leaderboard, i.e. the Summary of the progress report for all the students enrolled in a specific course with just one API call.
+
+    Calling python getLeadearboardCSV.py --help will show:
+
+        usage: getLeaderboardCSV.py [-h] [--search [SEARCH]]
+
+    Get a Leaderboard CSV in just one command. It will save as many leaderboards CSV as you have courses.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --search [SEARCH], -s [SEARCH]
+                            Searches specific text in the name of the course
    
+By default this will generate leaderboards for all the courses in your school. If you want to generate the leaderboard for a specific course you can use
+
+    python getLeaderboardCSV.py -s PART_OF_THE_NAME_OF_YOUR_COURSE
+    
+
 ## Cache and rate limits
 To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.  
 The cache path can be changed modifying the variable CACHE_PATH, by default it creates a file called teachable_cache.out in the same folder
