@@ -24,6 +24,7 @@ class User:
             writer.addItem("User")
             writer.addItem("Email")
             writer.addItem("Course")
+            writer.addItem("Updated at")
             writer.addItem("Completed (%)")
             writer.endCurrentLine()
         for (key, courseData) in self.reportCard.items():
@@ -31,9 +32,11 @@ class User:
                 courseID = courseData.get('course_id')
                 course = school.getCourseWithId(courseID)
                 percentage = courseData.get('percent_complete')
+                updated_at = courseData.get('updated_at')
                 writer.addItem(self.name)
                 writer.addItem(self.email)
                 writer.addItem(course.name)
+                writer.addItem(updated_at)
                 writer.addItem(str(percentage))
                 writer.endCurrentLine()
 
