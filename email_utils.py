@@ -9,10 +9,26 @@ import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
+from email.header import Header
+from email.utils import formataddr
 from mimetypes import guess_type
 from email.encoders import encode_base64
 from getpass import getpass
 from smtplib import SMTP
+
+def render_template(template, vardict):
+    ''' renders a Jinja template into HTML '''
+    # check if template exists
+    if not os.path.exists(template):
+        print('No template file present: %s' % template)
+        sys.exit()
+
+    import jinja2
+    templateLoader = jinja2.FileSystemLoader(searchpath=".")
+    templateEnv = jinja2.Environment(loader=templateLoader)
+    templ = templateEnv.get_template(template)
+    return templ.render(vardict)
+
 
 
 def get_email(email):
@@ -23,11 +39,12 @@ def get_email(email):
 
 class Email(object):
     def __init__(self, from_, to, subject, message, message_type='plain',
-                 attachments=None, cc=None, message_encoding='us-ascii'):
+                 attachments=None, cc=None, bcc=None, message_encoding='us-ascii'):
         self.email = MIMEMultipart()
         self.email['From'] = from_
         self.email['To'] = to
         self.email['Subject'] = subject
+        self.bcc = bcc
         if cc is not None:
             self.email['Cc'] = cc
         text = MIMEText(message, message_type, message_encoding)
@@ -69,7 +86,7 @@ class EmailConnection(object):
         self.connection.ehlo()
         self.connection.login(self.username, self.password)
 
-    def send(self, message, from_=None, to=None):
+    def send(self, message, from_=None, to=None, bcc=None):
         if type(message) == str:
             if from_ is None or to is None:
                 raise ValueError('You need to specify `from_` and `to`')
@@ -80,7 +97,7 @@ class EmailConnection(object):
             from_ = message.email['From']
             if 'Cc' not in message.email:
                 message.email['Cc'] = ''
-            to_emails = [message.email['To']] + message.email['Cc'].split(',')
+            to_emails = [message.email['To']] + message.email['Cc'].split(',') + [bcc]
             to = [get_email(complete_email) for complete_email in to_emails]
             message = str(message)
         return self.connection.sendmail(from_, to, message)

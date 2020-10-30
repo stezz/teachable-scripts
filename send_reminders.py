@@ -2,9 +2,11 @@
 import argparse
 import datetime
 from secrets import site_url, smtp_user, smtp_pwd, smtp_server, smtp_from, smtp_user, smtp_port
-from email_utils import EmailConnection, Email
+from email_utils import EmailConnection, Email, render_template
 import csv
-
+import jinja2
+from email.header import Header
+from email.utils import formataddr
 
 parser = argparse.ArgumentParser(description='''Send reminders to those that
 haven't started a course or haven't done a lesson in a week.''')
@@ -29,56 +31,34 @@ server = EmailConnection(server_str, smtp_user, smtp_pwd)
 with open(args.filename) as csvfile:
     csv_reader = csv.DictReader(csvfile, delimiter=';')
     for row in csv_reader:
+        message = ''
         name = row.get('User')
-        email = row.get('Email')
+        email_addr = row.get('Email')
         course = row.get('Course')
         updated_at = datetime.datetime.strptime(row.get('Updated at'),
         "%Y-%m-%dT%H:%M:%SZ")
         completed = int(row.get('Completed (%)'))
         firstname = name.split()[0]
+        from_addr = formataddr((smtp_from, smtp_user))
+#        to_addr = formataddr((name, email_addr))
+        to_addr = formataddr((name, 'stefano.mosconi@gmail.com'))
+        cc_addr = None
+        #cc_addr = formataddr((smtp_from, smtp_user))
+        msg_dict = {'firstname':firstname, 'course':course,
+          'date':updated_at, 'url':site_url, 'name_from':smtp_from}
         if updated_at < week_ago and completed > 0:
-            message ='''Hey {firstname},
-
-it seems like it's been at least a week since you haven't logged in to the {course} course.
-
-According to our records you have completed the last lesson on {date}.
-
-Please make sure to reserve some time to go through the training next week ;)
-
-You can access the course from the school page at {url}
-
-Happy learning!
---
-{name_from}'''.format(firstname=firstname, course=course, date=updated_at, url=site_url, name_from=smtp_from)
             subject ='Don\'t forget the {course} course'.format(course=course)
-            print('Preparing the email to {name} <{email}>...'.format(name=name, email=email))
-            mail = Email(from_='"%s" <%s>' % (smtp_from, smtp_user), #you can pass only email
-              to='"%s" <%s>' % (name, email), #you can pass only email
-              cc='"%s" <%s>' % (smtp_from, smtp_user),
-              subject=subject, message=message)
-            print('Sending...')
-            server.send(mail)
-            #print(message)
+            message = render_template('email_inactive.txt', msg_dict)
         elif completed == 0:
-            message ='''Hey {firstname},
-
-it seems like you have never taken any lesson of the {course} course.
-
-Please make sure to reserve some time to go through the training next week ;)
-
-You can access the course from the school page at {url}
-
-Happy learning!
---
-{name_from}'''.format(firstname=firstname, course=course, url=site_url, name_from=smtp_from)
             subject ='Don\'t forget the {course} course'.format(course=course)
-            print('Preparing the email to {name} <{email}>...'.format(name=name, email=email))
-            mail = Email(from_='"%s" <%s>' % (smtp_from, smtp_user), #you can pass only email
-              to='"%s" <%s>' % (name, email), #you can pass only email
-              cc='"%s" <%s>' % (smtp_from, smtp_user),
+            message = render_template('email_notstarted.txt', msg_dict)
+        if message:
+            print('Preparing the message for '+to_addr)
+            mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
               subject=subject, message=message)
             print('Sending...')
-            server.send(mail)
-            #print(message)
+            server.send(mail, bcc='stefano.mosconi@britemind.io')
+        else:
+            print('No reminder for '+to_addr)
 
 server.close()
