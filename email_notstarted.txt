@@ -1,0 +1,12 @@
+Hey {{firstname}},
+
+it seems like you have never taken any lesson of the {{course}} course.
+
+Please make sure to reserve some time to go through the training next week ;)
+
+You can access the course from the school page at {{url}}
+
+Happy learning!
+--
+{{name_from}}
+

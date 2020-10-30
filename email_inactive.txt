@@ -1,0 +1,14 @@
+Hey {{firstname}},
+
+it seems like it's been at least a week since you haven't logged in to the {{course}} course.
+
+According to our records you have completed the last lesson on {{date}}.
+
+Please make sure to reserve some time to go through the training next week ;)
+
+You can access the course from the school page at {{url}}
+
+Happy learning!
+--
+{{name_from}}
+
