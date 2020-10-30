@@ -40,8 +40,7 @@ with open(args.filename) as csvfile:
         completed = int(row.get('Completed (%)'))
         firstname = name.split()[0]
         from_addr = formataddr((smtp_from, smtp_user))
-#        to_addr = formataddr((name, email_addr))
-        to_addr = formataddr((name, 'stefano.mosconi@gmail.com'))
+        to_addr = formataddr((name, email_addr))
         cc_addr = None
         #cc_addr = formataddr((smtp_from, smtp_user))
         msg_dict = {'firstname':firstname, 'course':course,
@@ -57,7 +56,7 @@ with open(args.filename) as csvfile:
             mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
               subject=subject, message=message)
             print('Sending...')
-            server.send(mail, bcc='stefano.mosconi@britemind.io')
+            server.send(mail, bcc=smtp_user)
         else:
             print('No reminder for '+to_addr)
 
