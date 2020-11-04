@@ -18,7 +18,7 @@ class User:
             self.id = userData.get('id')
             self.reportCard = self.teachableAPI.getUserReportCard(self.id)
 
-    def generateSummaryStats(self, writer, school, writeheader):
+    def generateSummaryStats(self, writer, school, writeheader, course_id=0):
         if writeheader:
             writer.startNewLine()
             writer.addItem("User")
@@ -30,15 +30,17 @@ class User:
         for (key, courseData) in self.reportCard.items():
             if key != 'meta':
                 courseID = courseData.get('course_id')
-                course = school.getCourseWithId(courseID)
-                percentage = courseData.get('percent_complete')
-                updated_at = courseData.get('updated_at')
-                writer.addItem(self.name)
-                writer.addItem(self.email)
-                writer.addItem(course.name)
-                writer.addItem(updated_at)
-                writer.addItem(str(percentage))
-                writer.endCurrentLine()
+                if ((course_id!=0) and courseID==course_id) or course_id==0:
+                    print(course_id)
+                    course = school.getCourseWithId(courseID)
+                    percentage = courseData.get('percent_complete')
+                    updated_at = courseData.get('updated_at')
+                    writer.addItem(self.name)
+                    writer.addItem(self.email)
+                    writer.addItem(course.name)
+                    writer.addItem(updated_at)
+                    writer.addItem(str(percentage))
+                    writer.endCurrentLine()
 
         #user_ordered_list = sorted(output, key=itemgetter('course_percentage'), reverse=True)
 

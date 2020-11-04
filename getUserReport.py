@@ -27,6 +27,8 @@ help='''Searches specific text in name or email. For instance -s @gmail.com or
 @gmail.com. Or -s Jack will look for all the users that have Jack in
 their name (or surname) - cannot be used with -e''')
 parser.add_argument('--format', '-f', nargs='?', default='txt', help='Output format (txt or csv)')
+parser.add_argument('--courseid', '-c', nargs='?', default=0, help='''Limit
+search to this course id only (numeric value)''')
 parser.add_argument('--detailed', '-d', action='store_true', default='False', 
 help='Get detailed progress report')
 
@@ -72,7 +74,8 @@ for user_mail in users_mails:
     if args.detailed is True:
         user.generateDetailedStats(writer, school, writeheader)
     else:
-        user.generateSummaryStats(writer, school, writeheader)
+        user.generateSummaryStats(writer, school, writeheader,
+          int(args.courseid))
     if writeheader:
         writeheader = False
 
