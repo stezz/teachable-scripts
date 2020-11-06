@@ -41,15 +41,19 @@ class User:
                     writer.addItem(str(percentage))
                     writer.endCurrentLine()
 
-    def getSummaryStats(self, school):
+    def getSummaryStats(self, school, course_id=0):
+        '''Returns a list of lists with a summary stat for the specific user'''
         stats =[]
         for (key, courseData) in self.reportCard.items():
             if key != 'meta':
-                course = school.getCourseWithId(courseID)
-                percentage = courseData.get('percent_complete')
-                updated_at = courseData.get('updated_at')
-                stats.append([self.name, self.email, course.name, updated_at,
-                  str(percentage)])
+                courseID = courseData.get('course_id')
+                if ((course_id!=0) and courseID==course_id) or course_id==0:
+                    course = school.getCourseWithId(courseID)
+                    course = school.getCourseWithId(courseID)
+                    percentage = courseData.get('percent_complete')
+                    updated_at = courseData.get('updated_at')
+                    stats.append([self.name, self.email, course.name, updated_at,
+                      str(percentage)])
         return stats
 
 
@@ -121,5 +125,21 @@ class User:
                 writer.addItem(course.name)
                 writer.addItem(lecture.name)
                 writer.addItem(lecture.getDurationAsText())
-                # print lectureProgress.get('completed_at') + ': Lecture termine : ' + lecture.name + ' dure : ' + str(lecture.duration)
             writer.endCurrentLine()
+
+
+    def getDetailedStats(self, school):
+        '''Returns a list of lists with detailed stats for the specific user'''
+        data = []
+        stats = self.teachableAPI.getUserCoursesReport(self.id)
+        lecturesStats = stats.get('lecture_progresses')
+        for lectureProgress in lecturesStats:
+            completedDate = datetime.datetime.strptime(lectureProgress.get('completed_at'),'%Y-%m-%dT%H:%M:%SZ')
+            courseId =  lectureProgress.get('course_id')
+            lectureId = lectureProgress.get('lecture_id')
+            course = school.getCourseWithId(courseId)
+            lecture = course.getLectureWithId(lectureId)
+            str_cdate = completedDate.strftime("%Y-%m-%d %H:%M:%S")
+            data.append([self.name, self.email, str_cdate, course.name,
+              lecture.name, lecture.getDurationAsText()])
+        return data

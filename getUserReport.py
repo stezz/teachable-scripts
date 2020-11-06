@@ -5,6 +5,7 @@ from User import User
 from TeachableAPI import TeachableAPI
 from School import School
 from Writer import FileWriter,CSVFileWriter,Writer
+import pytablewriter as ptw
 
 parser = argparse.ArgumentParser(description='''Get your Teachable students
 report. 
@@ -34,9 +35,6 @@ help='Get detailed progress report')
 
 # parser.add_argument('--hidefree', type=int, default=0, help='0: show/1: hide free courses ')
 
-#Write the header only once
-writeheader = True
-
 args = parser.parse_args()
 
 #print args
@@ -47,14 +45,6 @@ output_file = ''
 if args.output_file:
     output_file = args.output_file
     print('Output will be saved to ' + output_file)
-if output_file:
-    print('Output will be saved as ' + args.format)
-    if args.format == 'csv':
-        writer = CSVFileWriter(output_file,';')
-    else:
-        writer = FileWriter(output_file)
-else:
-    writer = Writer()
 
 api = TeachableAPI()
 school = School(api)
@@ -69,15 +59,35 @@ if args.search:
 if not users_mails:
     users_mails = [x.get('email') for x in api.getAllUsers()]
 
+data = []
 for user_mail in users_mails:
     user = User(api, user_mail)
     if args.detailed is True:
-        user.generateDetailedStats(writer, school, writeheader)
+        data += user.getDetailedStats(school)
     else:
-        user.generateSummaryStats(writer, school, writeheader,
-          int(args.courseid))
-    if writeheader:
-        writeheader = False
+        data += user.getSummaryStats(school, int(args.courseid))
 
-writer.writeOutput()
+if output_file:
+    if args.format == 'csv':
+        writer = ptw.CsvTableWriter()
+    elif args.format == 'xlsx':
+        writer = ptw.ExcelXlsxTableWriter()
+else:
+    writer = ptw.MarkdownTableWriter()
 
+writer.table_name = 'Teachable Stats'
+writer.value_matrix = data
+
+if args.detailed is True:
+    writer.headers = ['User', 'Email', 'Date', 'Course', 'Chapter', 'Duration' ]
+else:
+    writer.headers = ['User', 'Email', 'Course', 'Updated at', 'Completed (%)']
+
+if output_file:
+    if args.format == 'csv':
+        with open(output_file+'.csv', 'w') as f:
+            f.write(writer.dumps())
+    elif args.format == 'xlsx':
+        writer.dump(output_file+'.xlsx')
+else:
+    writer.write_table()
