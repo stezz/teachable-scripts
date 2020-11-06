@@ -31,7 +31,6 @@ class User:
             if key != 'meta':
                 courseID = courseData.get('course_id')
                 if ((course_id!=0) and courseID==course_id) or course_id==0:
-                    print(course_id)
                     course = school.getCourseWithId(courseID)
                     percentage = courseData.get('percent_complete')
                     updated_at = courseData.get('updated_at')
@@ -41,6 +40,18 @@ class User:
                     writer.addItem(updated_at)
                     writer.addItem(str(percentage))
                     writer.endCurrentLine()
+
+    def getSummaryStats(self, school):
+        stats =[]
+        for (key, courseData) in self.reportCard.items():
+            if key != 'meta':
+                course = school.getCourseWithId(courseID)
+                percentage = courseData.get('percent_complete')
+                updated_at = courseData.get('updated_at')
+                stats.append([self.name, self.email, course.name, updated_at,
+                  str(percentage)])
+        return stats
+
 
         #user_ordered_list = sorted(output, key=itemgetter('course_percentage'), reverse=True)
 
