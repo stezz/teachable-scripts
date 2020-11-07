@@ -9,7 +9,7 @@ verify_ssl = true
 jinja2 = "*"
 requests = "*"
 pytablewriter = '*'
-pytablewriter[excel] = '*'
+xlsxwriter = "*"
 
 [requires]
 python_version = "3.8"
