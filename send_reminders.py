@@ -1,12 +1,13 @@
 # coding: utf8
 import argparse
 import datetime
-from secrets import site_url, smtp_user, smtp_pwd, smtp_server, smtp_from, smtp_user, smtp_port
+import configparser as cfgp
 from email_utils import EmailConnection, Email, render_template
 import csv
 import jinja2
 from email.header import Header
 from email.utils import formataddr
+import os.path
 
 parser = argparse.ArgumentParser(description='''Send reminders to those that
 haven't started a course or haven't done a lesson in a week.''')
@@ -22,7 +23,24 @@ default='False', help='''Don't send the messages for real''')
 
 args = parser.parse_args()
 
+def get_config(configfile, section):
+    if os.path.exists(configfile):
+        config = cfgp.ConfigParser()
+        config.read(configfile)
+        config_section = config[section]
+        return config_section
+    else:
+        print('Missing config.ini file with login data')
+        sys.exit(1)
 
+defaults = get_config('./config.ini', 'DEFAULT')
+
+site_url = defaults['site_url']
+smtp_pwd = defaults['smtp_pwd']
+smtp_user = defaults['smtp_user']
+smtp_port = defaults['smtp_port']
+smtp_server = defaults['smtp_server']
+smtp_from = defaults['smtp_from']
 
 now = datetime.datetime.now()
 week = datetime.timedelta(days=7)

@@ -28,28 +28,13 @@ If you don't have pip installed you can do it with
     sudo easy_install pip
     
 
-After that you should copy the file called secrets_example.py, rename it as secrets.py and set your username, password and yout teachable custom domain
+After that you should copy the file called config_example.ini, rename it as config.ini and set your username, password and yout teachable custom domain
+    [DEFAULT]
+    username=YOUR_TEACHABLE_USERNAME
+    password=YOUR_TEACHABLE_PASSWORD
+    site_url=https://YOUR_TEACHABLE_URL
 
-    username='YOUR_TEACHABLE_USERNAME'
-    password='YOUR_TEACHABLE_PASSWORD'
-    site_url='https://YOUR_TEACHABLE_URL'
-
-The first time you run the script, this error could happen.
-
-    raise SSLError(e, request=request) requests.exceptions.SSLError: 
-    HTTPSConnectionPool(host='xxxx', port=443): 
-    Max retries exceeded with url: xxxxx 
-    (Caused by SSLError(SSLError(1, u'[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] 
-    sslv3 alert handshake failure (_ssl.c:590)'),)) 
-
-You should install python with brew with this command in order to solve all the openssl nonsense.
-
-    brew install python --with-brewed-openssl
-    
-After installing it you should probably force the brew link, but in case it doesn't solve the problem
-the "brew info python" suggest you add the url to your path
-
-    export PATH="/usr/local/opt/python/libexec/bin:$PATH"
+alongside all the other variables that you find there
 
 ## Usage
 ### Enroll users to course

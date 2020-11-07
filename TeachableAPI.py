@@ -4,6 +4,8 @@ import sys
 import shelve
 import os.path
 import time
+import configparser as cfgp
+
 
 class TeachableAPI:
     siteUrl = None
@@ -23,7 +25,7 @@ class TeachableAPI:
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.prepareSession(dir_path + '/secrets.py')
+        self.prepareSession(dir_path + '/config.ini')
         self.expire_cache(dir_path + '/teachable_cache.out')
         self.prepareCache(dir_path + '/teachable_cache.out')
 
@@ -32,17 +34,21 @@ class TeachableAPI:
             self.cachedData.close()
 
 
-    def prepareSession(self, SECRETS_PATH):
-        if os.path.exists(SECRETS_PATH):
-            from secrets import username, password, site_url
+    def prepareSession(self, configfile):
+        if os.path.exists(configfile):
+            config = cfgp.ConfigParser()
+            config.read(configfile)
+            defaults = config['DEFAULT']
+            username = defaults['username']
+            password = defaults['password']
+            site_url = defaults['site_url']
             self.siteUrl = site_url
             self.session = requests.Session()
-            # get username and password from the secrets.py file
             self.session.auth = (username, password)
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
         else:
-            print('Missing secrets.py file with login data')
+            print('Missing config.ini file with login data')
             sys.exit(1)
 
 
