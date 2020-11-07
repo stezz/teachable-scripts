@@ -44,6 +44,7 @@ class User:
     def getSummaryStats(self, school, course_id=0):
         '''Returns a list of lists with a summary stat for the specific user'''
         stats =[]
+        now = datetime.datetime.today()
         for (key, courseData) in self.reportCard.items():
             if key != 'meta':
                 courseID = courseData.get('course_id')
@@ -51,9 +52,11 @@ class User:
                     course = school.getCourseWithId(courseID)
                     course = school.getCourseWithId(courseID)
                     percentage = courseData.get('percent_complete')
-                    updated_at = courseData.get('updated_at')
+                    update_time = datetime.datetime.strptime(courseData.get('updated_at'),'%Y-%m-%dT%H:%M:%SZ')
+                    days_since_last = (now - update_time).days
+                    updated_at = update_time.strftime("%Y-%m-%d %H:%M:%S")
                     stats.append([self.name, self.email, course.name, updated_at,
-                      str(percentage)])
+                      str(percentage), days_since_last])
         return stats
 
 

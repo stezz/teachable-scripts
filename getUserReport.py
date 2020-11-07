@@ -4,7 +4,6 @@ import string
 from User import User
 from TeachableAPI import TeachableAPI
 from School import School
-from Writer import FileWriter,CSVFileWriter,Writer
 import pytablewriter as ptw
 
 parser = argparse.ArgumentParser(description='''Get your Teachable students
@@ -21,7 +20,7 @@ because this will be rate limited at some point''')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('--emails', '-e', type=str, nargs='+', default='',
 help='list of emails (separated by spaces) - cannot be used with -s')
-parser.add_argument('--output_file', '-o', nargs='?', default='', help='Output file')
+parser.add_argument('--output_file', '-o', nargs='?', default='teachable_stats', help='Output file')
 group.add_argument('--search', '-s', nargs='?', default='',
 help='''Searches specific text in name or email. For instance -s @gmail.com or
 -s *@gmail.com will look for all the users that have an email ending in
@@ -41,10 +40,6 @@ args = parser.parse_args()
 
 # HIDE_FREE_COURSES = args.hidefree  # set to 0 to show all
 
-output_file = ''
-if args.output_file:
-    output_file = args.output_file
-    print('Output will be saved to ' + output_file)
 
 api = TeachableAPI()
 school = School(api)
@@ -67,27 +62,37 @@ for user_mail in users_mails:
     else:
         data += user.getSummaryStats(school, int(args.courseid))
 
-if output_file:
-    if args.format == 'csv':
-        writer = ptw.CsvTableWriter()
-    elif args.format == 'xlsx':
-        writer = ptw.ExcelXlsxTableWriter()
+
+if args.detailed is True:
+    headers = ['User', 'Email', 'Date', 'Course', 'Chapter', 'Duration' ]
+else:
+    headers = ['User', 'Email', 'Course', 'Updated at', 'Completed (%)', 'Days since last lesson']
+
+if args.format == 'csv':
+    writer = ptw.CsvTableWriter()
+elif args.format == 'excel':
+    writer = ptw.ExcelXlsxTableWriter()
+    # Because honestly MS Gothic sucks as a font
+    writer.format_table['cell']['font_name'] = 'Calibri'
+    writer.format_table['cell']['font_size'] = 12
+    writer.format_table['header']['font_name'] = 'Calibri'
+    writer.format_table['header']['font_size'] = 12
 else:
     writer = ptw.MarkdownTableWriter()
 
 writer.table_name = 'Teachable Stats'
+writer.headers = headers
 writer.value_matrix = data
 
-if args.detailed is True:
-    writer.headers = ['User', 'Email', 'Date', 'Course', 'Chapter', 'Duration' ]
-else:
-    writer.headers = ['User', 'Email', 'Course', 'Updated at', 'Completed (%)']
-
-if output_file:
-    if args.format == 'csv':
-        with open(output_file+'.csv', 'w') as f:
-            f.write(writer.dumps())
-    elif args.format == 'xlsx':
-        writer.dump(output_file+'.xlsx')
+if args.format == 'csv':
+    ofile = args.output_file+'.csv'
+    print('Saving to ', ofile)
+    with open(ofile, 'w') as f:
+        f.write(writer.dumps())
+    f.close()
+elif args.format == 'excel':
+    ofile = args.output_file+'.xlsx'
+    print('Saving to ', ofile)
+    writer.dump(ofile)
 else:
     writer.write_table()

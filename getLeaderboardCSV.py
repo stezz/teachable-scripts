@@ -4,7 +4,6 @@ import string
 from User import User
 from TeachableAPI import TeachableAPI
 from School import School
-from Writer import FileWriter,CSVFileWriter,Writer
 
 parser = argparse.ArgumentParser(description='''Get a Leaderboard CSV in just
 one command. 
