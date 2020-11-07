@@ -8,8 +8,7 @@ verify_ssl = true
 [packages]
 jinja2 = "*"
 requests = "*"
-pytablewriter = '*'
-xlsxwriter = "*"
+pytablewriter = {extras = ["excel", "html"], version = "*"}
 
 [requires]
 python_version = "3.8"

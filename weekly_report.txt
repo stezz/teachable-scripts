@@ -1,0 +1,14 @@
+Hey {{firstname}},<br>
+<br>
+attached is the weekly report for the {{course}} course that you manage.<br>
+<br>
+If you need anything just let us know by replying to this email.<br><br>
+{% if warn_text != '' -%}
+Please pay attention to the following students that seem to be falling behind<br>
+{{warn_text}}
+{% endif -%}
+<br>
+Thanks<br>
+--<br>
+{{name_from}}
+
