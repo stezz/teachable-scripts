@@ -43,8 +43,8 @@ smtp_server = defaults['smtp_server']
 smtp_from = defaults['smtp_from']
 
 now = datetime.datetime.now()
-week = datetime.timedelta(days=7)
-week_ago = now - week
+alert_days = datetime.timedelta(days=int(defaults['alert_days']))
+alert_limit = now - alert_days
 print('Connecting to server...')
 server_str = smtp_server+':'+str(smtp_port)
 server = EmailConnection(server_str, smtp_user, smtp_pwd)
@@ -75,7 +75,7 @@ for section in config.keys():
                 cc_addr = None
                 msg_dict = {'firstname':firstname, 'course':course,
                   'date':updated_at, 'url':site_url, 'name_from':smtp_from}
-                if updated_at < week_ago and completed > 0 and completed < 99:
+                if updated_at < alert_limit and completed > 0 and completed < 99:
                     subject ='Don\'t forget the {course} course'.format(course=course)
                     message = render_template('email_inactive.txt', msg_dict)
                 elif completed == 0:
