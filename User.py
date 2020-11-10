@@ -18,29 +18,6 @@ class User:
             self.id = userData.get('id')
             self.reportCard = self.teachableAPI.getUserReportCard(self.id)
 
-    def generateSummaryStats(self, writer, school, writeheader, course_id=0):
-        if writeheader:
-            writer.startNewLine()
-            writer.addItem("User")
-            writer.addItem("Email")
-            writer.addItem("Course")
-            writer.addItem("Updated at")
-            writer.addItem("Completed (%)")
-            writer.endCurrentLine()
-        for (key, courseData) in self.reportCard.items():
-            if key != 'meta':
-                courseID = courseData.get('course_id')
-                if ((course_id!=0) and courseID==course_id) or course_id==0:
-                    course = school.getCourseWithId(courseID)
-                    percentage = courseData.get('percent_complete')
-                    updated_at = courseData.get('updated_at')
-                    writer.addItem(self.name)
-                    writer.addItem(self.email)
-                    writer.addItem(course.name)
-                    writer.addItem(updated_at)
-                    writer.addItem(str(percentage))
-                    writer.endCurrentLine()
-
     def getSummaryStats(self, school, course_id=0):
         '''Returns a list of lists with a summary stat for the specific user'''
         stats =[]
@@ -101,34 +78,6 @@ class User:
     #                 section_name = section.get('name')
     #                 return lecture_name, section_name
     #     return '', ''
-
-    def generateDetailedStats(self, writer, school, writeheader):
-        if writeheader:
-            writer.startNewLine()
-            writer.addItem("User")
-            writer.addItem("Email")
-            writer.addItem("Date")
-            writer.addItem("Course")
-            writer.addItem("Chapter")
-            writer.addItem('Duration')
-            writer.endCurrentLine()
-        stats = self.teachableAPI.getUserCoursesReport(self.id)
-        lecturesStats = stats.get('lecture_progresses')
-        for lectureProgress in lecturesStats:
-            writer.startNewLine()
-            completedDate = datetime.datetime.strptime(lectureProgress.get('completed_at'),'%Y-%m-%dT%H:%M:%SZ')
-            courseId =  lectureProgress.get('course_id')
-            lectureId = lectureProgress.get('lecture_id')
-            course = school.getCourseWithId(courseId)
-            lecture = course.getLectureWithId(lectureId)
-            if lecture:
-                writer.addItem(self.name)
-                writer.addItem(self.email)
-                writer.addItem(completedDate.strftime("%Y-%m-%d %H:%M:%S"))
-                writer.addItem(course.name)
-                writer.addItem(lecture.name)
-                writer.addItem(lecture.getDurationAsText())
-            writer.endCurrentLine()
 
 
     def getDetailedStats(self, school):
