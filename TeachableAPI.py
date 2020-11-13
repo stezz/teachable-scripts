@@ -22,6 +22,8 @@ class TeachableAPI:
     URL_IMPORT_USERS = '/api/v1/import/users'
     URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments'
     URL_LEADERBOARD = '/api/v1/courses/COURSE_ID/leaderboard.csv?page=1&per=PER_PAGE'
+    URL_UNENROLL_USER = '/api/v1/enrollments/unenroll' #
+#    -data-binary '{"course_id":int,"user_id":int}' \
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -90,10 +92,10 @@ class TeachableAPI:
         course_info = self._getJsonAt(self.URL_COURSES)
         return course_info.get('courses')
 
-    def findUser(self, email):
+    def findUser(self, email, withcache=True):
         '''Searches for a specific user, the API uses the same endpoint, for
         one or many'''
-        userList = self._getJsonAt(self.URL_FIND_USER + email).get('users')
+        userList = self._getJsonAt(self.URL_FIND_USER + email, withcache).get('users')
         if len(userList) == 0:
             return None
         else:
@@ -140,7 +142,7 @@ class TeachableAPI:
         path = self.URL_REPORT_CARD.replace('USER_ID',str(userId))
         return self._getJsonAt(path, False)
 
-    def addUsersUsersToSchool(self, usersArray, courseId):
+    def addUsersToSchool(self, usersArray, courseId):
         usersJsonArray = []
         for userRow in usersArray:
             userJson = {
@@ -148,10 +150,10 @@ class TeachableAPI:
                 "name":userRow[1],
                 "password":None,
                 "role":"student",
-                "course_id":courseId
+                "course_id":courseId,
+                "unsubscribe_from_marketing_emails":'false'
             }
             usersJsonArray.append(userJson)
-        print(usersJsonArray)
         payload = {
             "user_list" :usersJsonArray,
             "course_id": courseId,
@@ -159,15 +161,45 @@ class TeachableAPI:
             "users_role": "student",
             "author_bio_data": {}
         }
-        return self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+        resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+        return json.loads(resp)
+
+    def addUserToSchool(self, userdict, courseId):
+        usersJsonArray =[]
+        userJson = {
+            "email":userdict['email'],
+            "name":userdict['fullname'],
+            "password":None,
+            "role":"student",
+            "course_id":courseId,
+            "unsubscribe_from_marketing_emails":'false'
+        }
+        usersJsonArray.append(userJson)
+        payload = {
+            "user_list" :usersJsonArray,
+            "course_id": courseId,
+            "coupon_code": None,
+            "users_role": "student",
+            "author_bio_data": {}
+        }
+        resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+        return json.loads(resp)
 
     def enrollUsersToCourse(self, userIdArray, courseId):
         responses = []
         for userRow in userIdArray:
-            path = self.URL_ENROLL_USER.replace('USER_ID', str(userRow[0]))
-            response = self._postJsonAt(path, json.dumps({"course_id": int(courseId)}))
+            response = self.enrollUserToCourse(str(userRow[0]))
             responses.append(response)
         return responses
+
+    def enrollUserToCourse(self, userId, courseId):
+        path = self.URL_ENROLL_USER.replace('USER_ID', str(userId))
+        response = self._postJsonAt(path, json.dumps({"course_id": int(courseId)}))
+        if response:
+            return json.loads(response)
+        else:
+            return response
+
 
     def _getJsonAt(self, path, withCache=True):
         if withCache and path in self.cachedData:
