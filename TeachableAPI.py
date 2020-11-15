@@ -5,6 +5,7 @@ import shelve
 import os.path
 import time
 import configparser as cfgp
+import logging
 
 
 class TeachableAPI:
@@ -30,6 +31,7 @@ class TeachableAPI:
         self.prepareSession(dir_path + '/config.ini')
         self.expire_cache(dir_path + '/teachable_cache.out')
         self.prepareCache(dir_path + '/teachable_cache.out')
+        self.logger = logging.getLogger('TeachableAPI')
 
     def __del__(self):
         if self.cachedData:
@@ -50,7 +52,7 @@ class TeachableAPI:
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
         else:
-            print('Missing config.ini file with login data')
+            self.logger.error('Missing config.ini file with login data')
             sys.exit(1)
 
 
@@ -66,7 +68,7 @@ class TeachableAPI:
             #                                            aggressive I hope)
             if cache_antiquity > MAXIMUM_CACHE_DURATION:
                 os.remove(CACHE_PATH)
-                print('Cache file dumped!')
+                self.logger.warning('Cache file dumped!')
 
     def getLeaderboardCSV(self, course, filename):
         '''Gets a course JSON dict as input'''
@@ -203,14 +205,14 @@ class TeachableAPI:
 
     def _getJsonAt(self, path, withCache=True):
         if withCache and path in self.cachedData:
-            print(("Found cached data for " + path))
+            self.logger.debug(("Found cached data for " + path))
             return self.cachedData[path]
         else:
             fullUrl = self.siteUrl + path
-            print(("Downloading data from " + fullUrl))
+            self.logger.debug(("Downloading data from " + fullUrl))
             jsonData = self.session.get(fullUrl).json()
             if jsonData.get('error'):
-                print('Check Teachable credentials')
+                self.logger.error('Check Teachable credentials')
                 sys.exit(1)
             if withCache:
                 self.cachedData[path] = jsonData
@@ -218,10 +220,10 @@ class TeachableAPI:
 
     def _postJsonAt(self, path, jsonBody):
         fullUrl = self.siteUrl + path
-        print(("Uploading POST data to " + fullUrl))
-        print("JSON Body : ")
+        self.logger.debug(("Uploading POST data to " + fullUrl))
+        self.logger.debug("JSON Body : ")
         jsonTxt = json.loads(jsonBody)
         self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
-        print((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
+        self.logger.debug((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
         jsonResponseBody = self.session.post(fullUrl, data=jsonBody)
         return jsonResponseBody.text
