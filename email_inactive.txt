@@ -1,6 +1,6 @@
 Hey {{firstname}},
 
-it seems like it's been at least a week since you haven't logged in to the {{course}} course.
+it seems like it's been {{days_since}} days since you haven't logged in to the {{course}} course.
 
 According to our records you have completed the last lesson on {{date}}.
 

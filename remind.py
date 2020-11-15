@@ -43,8 +43,7 @@ smtp_server = defaults['smtp_server']
 smtp_from = defaults['smtp_from']
 
 now = datetime.datetime.now()
-alert_days = datetime.timedelta(days=int(defaults['alert_days']))
-alert_limit = now - alert_days
+alert_days_int = int(defaults['alert_days'])
 print('Connecting to server...')
 server_str = smtp_server+':'+str(smtp_port)
 server = EmailConnection(server_str, smtp_user, smtp_pwd)
@@ -73,12 +72,12 @@ for section in config.keys():
                 from_addr = formataddr((smtp_from, smtp_user))
                 to_addr = formataddr((name, email_addr))
                 cc_addr = None
-                msg_dict = {'firstname':firstname, 'course':course,
-                  'date':updated_at, 'url':site_url, 'name_from':smtp_from}
-                if updated_at < alert_limit and completed > 0 and completed < 99:
+                msg_dict = {'firstname':firstname, 'days_since':days_since, 'course':course,
+                            'date':updated_at, 'url':site_url, 'name_from':smtp_from}
+                if days_since > alert_days_int and completed > 0 and completed < 99:
                     subject ='Don\'t forget the {course} course'.format(course=course)
                     message = render_template('email_inactive.txt', msg_dict)
-                elif completed == 0:
+                elif completed == 0 and days_since > alert_days_int:
                     subject ='Don\'t forget the {course} course'.format(course=course)
                     message = render_template('email_notstarted.txt', msg_dict)
                 if message:
@@ -122,7 +121,7 @@ for section in config.keys():
             msg_dict = {'firstname':firstname, 'course':course,
             'name_from':smtp_from, 'warn_text':warn_text}
             subject ='Weekly report for {course} course'.format(course=course)
-            message = render_template('weekly_report.txt', msg_dict)
+            message = render_template('weekly_report.html', msg_dict)
             print('Preparing the message for '+to_addr)
             print(message)
             mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,

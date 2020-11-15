@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  font-family: Arial, Helvetica, sans-serif;
+}
+table {
+  width: 100%;
+}
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+th {
+  text-align: left;
+  background-color: #797C80;
+  color: white;
+}
+</style>
+</head>
+<body>
+Hey {{firstname}},<br>
+<br>
+attached is the weekly report for the {{course}} course that you manage.<br>
+<br>
+If you need anything just let us know by replying to this email.<br><br>
+{% if warn_text != '' -%}
+Please pay attention to the following students that seem to be falling behind<br>
+{{warn_text}}
+{% endif -%}
+<br>
+Thanks<br>
+--<br>
+{{name_from}}
+</body>
+</html>
