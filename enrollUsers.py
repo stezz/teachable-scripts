@@ -1,4 +1,8 @@
 # coding: utf8
+import logging
+import logging.config
+logging.config.fileConfig(fname='logconf.ini', disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
 import argparse
 import csv
 import string
@@ -29,12 +33,12 @@ for user in records:
         # register the user to the course if found
         resp = api.enrollUserToCourse(teachable_user['id'], courseId)
         if 'message' in resp.keys():
-            print(resp['message'])
+            logger.info(resp['message'])
         else:
-            print(user['fullname']+' signed up!')
+            logger.info(user['fullname']+' signed up!')
     else:
-        print('User {} doesn\'t exist. Creating and registering'.format(user['fullname']))
+        logger.info('User {} doesn\'t exist. Creating and registering'.format(user['fullname']))
         # Add the user to the school and register to the course otherwise
         resp = api.addUserToSchool(user, courseId)
         if 'message' in resp.keys():
-            print(resp['message'])
+            logger.info(resp['message'])
