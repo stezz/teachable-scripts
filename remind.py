@@ -1,8 +1,4 @@
 # coding: utf8
-import logging
-import logging.config
-logging.config.fileConfig(fname='logconf.ini', disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
 import argparse
 import datetime
 import configparser as cfgp
@@ -15,6 +11,10 @@ from TeachableAPI import TeachableAPI
 from School import School
 import pytablewriter as ptw
 
+import logging
+import logging.config
+logging.config.fileConfig(fname='logconf.ini', disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='''Polls Teachable and sends

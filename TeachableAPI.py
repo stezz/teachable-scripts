@@ -49,6 +49,7 @@ class TeachableAPI:
             self.siteUrl = site_url
             self.session = requests.Session()
             self.session.auth = (username, password)
+            self.cache_expire = defaults['cache_expire']
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
         else:
@@ -63,7 +64,7 @@ class TeachableAPI:
     def expire_cache(self,CACHE_PATH):
         if os.path.isfile(CACHE_PATH):
             cache_antiquity = time.time() - os.path.getctime(CACHE_PATH)
-            MAXIMUM_CACHE_DURATION = 60 * 60 * 24 * 1  # One day (rate limits
+            MAXIMUM_CACHE_DURATION = 60 * 60 * 24 * int(self.cache_expire)  # One day (rate limits
             #                                            are not that
             #                                            aggressive I hope)
             if cache_antiquity > MAXIMUM_CACHE_DURATION:
@@ -202,14 +203,32 @@ class TeachableAPI:
         else:
             return response
 
+    def getEnrolledCourses(self, userId):
+        "Gets the courses the user is enrolled in"
+        path = self.URL_ENROLL_USER.replace('USER_ID', str(userId))
+        response = self._getJsonAt(path).get('enrollments')
+        courses = []
+        for items in response:
+            if 'course_id' in items.keys():
+                courses.append(items['course_id'])
+        return courses
+
+
+    def checkEnrollmentToCourse(self, userId, courseId):
+        "Check is a user is enrolled in a specific course"
+        courses = self.getEnrolledCourses(userId)
+        if int(courseId) in courses:
+            return True
+        else:
+            return False
 
     def _getJsonAt(self, path, withCache=True):
         if withCache and path in self.cachedData:
-            self.logger.debug(("Found cached data for " + path))
+            self.logger.info(("Found cached data for " + path))
             return self.cachedData[path]
         else:
             fullUrl = self.siteUrl + path
-            self.logger.debug(("Downloading data from " + fullUrl))
+            self.logger.info(("Downloading data from " + fullUrl))
             jsonData = self.session.get(fullUrl).json()
             if jsonData.get('error'):
                 self.logger.error('Check Teachable credentials')

@@ -95,3 +95,7 @@ class User:
             data.append([self.name, self.email, str_cdate, course.name,
               lecture.name, lecture.getDurationAsText()])
         return data
+
+    def isEnrolledToCourse(self, courseId):
+        "Returns true if user is enrolled to courseId"
+        return self.teachableAPI.checkEnrollmentToCourse(self.id, courseId)
