@@ -23,8 +23,11 @@ class TeachableAPI:
     URL_IMPORT_USERS = '/api/v1/import/users'
     URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments'
     URL_LEADERBOARD = '/api/v1/courses/COURSE_ID/leaderboard.csv?page=1&per=PER_PAGE'
-    URL_UNENROLL_USER = '/api/v1/enrollments/unenroll' #
+    URL_COURSE_PROGRESS = '/api/v1/course_progresses?user_id=USER_ID' # no idea what does it do
+    URL_PAGES_CERTIFICATE = '/api/v1/pages?feature=certificate' # no idea what does it do
+    URL_UNENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID' #
 #    -data-binary '{"course_id":int,"user_id":int}' \
+    URL_ENROLLED_USER = 'admin/users/USER_ID/enrolled'
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -196,18 +199,35 @@ class TeachableAPI:
         return responses
 
     def enrollUserToCourse(self, userId, courseId):
+        # The proper way to enroll users is by setting is_active to True.
+        # Need to find out whether that automatically creates a user into the
+        # school or we need to first create the user as described here https://docs.teachable.com/reference#apiv1users
         path = self.URL_ENROLL_USER.replace('USER_ID', str(userId))
         response = self._postJsonAt(path, json.dumps({"course_id": int(courseId)}))
+        self.getEnrolledCourses(userId, False)
         if response:
             return json.loads(response)
         else:
             return response
 
-    def getEnrolledCourses(self, userId):
+    def unenrollUserFromCourse(self, userId, courseId):
+        path = self.URL_UNENROLL_USER.replace('USER_ID',
+               str(userId)).replace('COURSE_ID', str(courseId))
+        response = self._postJsonAt(path, json.dumps({"is_active":"false"}))
+        # updating also the cache for the enrolled courses
+        self.getEnrolledCourses(userId, False)
+        print(response)
+        if response:
+            return json.loads(response)
+        else:
+            return response
+
+    def getEnrolledCourses(self, userId, withcache=True):
         "Gets the courses the user is enrolled in"
         path = self.URL_ENROLL_USER.replace('USER_ID', str(userId))
-        response = self._getJsonAt(path).get('enrollments')
-        return [p['course_id'] for p in response if 'course_id' in p]
+        response = self._getJsonAt(path, withcache).get('enrollments')
+        return [p['course_id'] for p in response if 'course_id' in p
+                and p['is_active'] == True]
 
 
     def checkEnrollmentToCourse(self, userId, courseId):
@@ -226,14 +246,14 @@ class TeachableAPI:
             if jsonData.get('error'):
                 self.logger.error('Check Teachable credentials')
                 sys.exit(1)
-            if withCache:
-                self.cachedData[path] = jsonData
+            self.logger.info('Updating cache data for ' + path)
+            self.cachedData[path] = jsonData
             return jsonData
 
     def _postJsonAt(self, path, jsonBody):
         fullUrl = self.siteUrl + path
         self.logger.debug(("Uploading POST data to " + fullUrl))
-        self.logger.debug("JSON Body : ")
+        self.logger.debug("JSON Body : " + jsonBody)
         jsonTxt = json.loads(jsonBody)
         self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
         self.logger.debug((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
