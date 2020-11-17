@@ -207,20 +207,13 @@ class TeachableAPI:
         "Gets the courses the user is enrolled in"
         path = self.URL_ENROLL_USER.replace('USER_ID', str(userId))
         response = self._getJsonAt(path).get('enrollments')
-        courses = []
-        for items in response:
-            if 'course_id' in items.keys():
-                courses.append(items['course_id'])
-        return courses
+        return [p['course_id'] for p in response if 'course_id' in p]
 
 
     def checkEnrollmentToCourse(self, userId, courseId):
         "Check is a user is enrolled in a specific course"
         courses = self.getEnrolledCourses(userId)
-        if int(courseId) in courses:
-            return True
-        else:
-            return False
+        return int(courseId) in courses
 
     def _getJsonAt(self, path, withCache=True):
         if withCache and path in self.cachedData:
