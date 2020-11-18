@@ -213,6 +213,7 @@ class TeachableAPI:
                        str(userId)).replace('COURSE_ID', str(courseId))
                 jsonBody = json.dumps({"is_active": True})
                 self.logger.debug('Enrolling user {} to course {} by changing is_active flag'.format(cid, courseId))
+                response = self._putJsonAt(path, jsonBody)
             else:
                 # The user is already enrolled, nothing to do
                 self.logger.info('User {} is already enrolled to course {}'.format(userId,courseId))
@@ -221,17 +222,14 @@ class TeachableAPI:
             # We need to enroll the user
             path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
             jsonBody = json.dumps({"course_id": int(courseId)})
-        if path:
             response = self._postJsonAt(path, jsonBody)
             # Now refreshing the status in the cache
-            self.getEnrolledCourses(userId, False)
-            print(response)
-            if response:
-                return json.loads(response)
-            else:
-                return response
+        self.getEnrolledCourses(userId, False)
+        print(response)
+        if response:
+            return json.loads(response)
         else:
-            return None
+            return response
 
     def unenrollUserFromCourse(self, userId, courseId):
         path = self.URL_UNENROLL_USER.replace('USER_ID',
@@ -281,4 +279,14 @@ class TeachableAPI:
         self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
         self.logger.debug((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
         jsonResponseBody = self.session.post(fullUrl, data=jsonBody)
+        return jsonResponseBody.text
+    
+    def _putJsonAt(self, path, jsonBody):
+        fullUrl = self.siteUrl + path
+        self.logger.debug(("Uploading PUT data to " + fullUrl))
+        self.logger.debug("JSON Body : " + jsonBody)
+        jsonTxt = json.loads(jsonBody)
+        self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
+        self.logger.debug((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
+        jsonResponseBody = self.session.put(fullUrl, data=jsonBody)
         return jsonResponseBody.text
