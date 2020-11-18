@@ -21,11 +21,11 @@ class TeachableAPI:
     URL_FIND_COURSE = '/api/v1/courses?name_cont='
     URL_COURSE_PRODUCTS = '/api/v1/courses/COURSE_ID/products'
     URL_IMPORT_USERS = '/api/v1/import/users'
-    URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments'
+    URL_ENROLLMENTS_USER = '/api/v1/users/USER_ID/enrollments'
     URL_LEADERBOARD = '/api/v1/courses/COURSE_ID/leaderboard.csv?page=1&per=PER_PAGE'
     URL_COURSE_PROGRESS = '/api/v1/course_progresses?user_id=USER_ID' # no idea what does it do
     URL_PAGES_CERTIFICATE = '/api/v1/pages?feature=certificate' # no idea what does it do
-    URL_UNENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID' #
+    URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID' #
 #    -data-binary '{"course_id":int,"user_id":int}' \
     URL_ENROLLED_USER = 'admin/users/USER_ID/enrolled'
 
@@ -199,16 +199,39 @@ class TeachableAPI:
         return responses
 
     def enrollUserToCourse(self, userId, courseId):
-        # The proper way to enroll users is by setting is_active to True.
-        # Need to find out whether that automatically creates a user into the
-        # school or we need to first create the user as described here https://docs.teachable.com/reference#apiv1users
-        path = self.URL_ENROLL_USER.replace('USER_ID', str(userId))
-        response = self._postJsonAt(path, json.dumps({"course_id": int(courseId)}))
-        self.getEnrolledCourses(userId, False)
-        if response:
-            return json.loads(response)
+        # check if the user has been previously enrolled
+        path = ''
+        cid = int(courseId)
+        enrolled_courses = self.getEnrolledCourses(userId)
+        courses = [int(p['course_id']) for p in enrolled_courses]
+        if cid in courses:
+            if not [p['is_active'] for p in enrolled_courses if
+                p['course_id'] == cid][0]:
+                # The user has been previously enrolled
+                # We just need to set is_active to True
+                path = self.URL_ENROLL_USER.replace('USER_ID',
+                       str(userId)).replace('COURSE_ID', str(courseId))
+                jsonBody = json.dumps({"is_active": True})
+                self.logger.debug('Enrolling user {} to course {} by changing is_active flag'.format(cid, courseId))
+            else:
+                # The user is already enrolled, nothing to do
+                self.logger.info('User {} is already enrolled to course {}'.format(userId,courseId))
         else:
-            return response
+            # The user has never been endolled to this course
+            # We need to enroll the user
+            path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
+            jsonBody = json.dumps({"course_id": int(courseId)})
+        if path:
+            response = self._postJsonAt(path, jsonBody)
+            # Now refreshing the status in the cache
+            self.getEnrolledCourses(userId, False)
+            print(response)
+            if response:
+                return json.loads(response)
+            else:
+                return response
+        else:
+            return None
 
     def unenrollUserFromCourse(self, userId, courseId):
         path = self.URL_UNENROLL_USER.replace('USER_ID',
@@ -224,16 +247,16 @@ class TeachableAPI:
 
     def getEnrolledCourses(self, userId, withcache=True):
         "Gets the courses the user is enrolled in"
-        path = self.URL_ENROLL_USER.replace('USER_ID', str(userId))
-        response = self._getJsonAt(path, withcache).get('enrollments')
-        return [p['course_id'] for p in response if 'course_id' in p
-                and p['is_active'] == True]
+        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
+        return self._getJsonAt(path, withcache).get('enrollments')
+        #return [p['course_id'] for p in response if 'course_id' in p
+        #        and p['is_active'] == True]
 
 
     def checkEnrollmentToCourse(self, userId, courseId):
         "Check is a user is enrolled in a specific course"
         courses = self.getEnrolledCourses(userId)
-        return int(courseId) in courses
+        return int(courseId) in [p['course_id'] for p in courses if 'course_id' in p and p['is_active'] == True]
 
     def _getJsonAt(self, path, withCache=True):
         if withCache and path in self.cachedData:

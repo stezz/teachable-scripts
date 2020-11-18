@@ -48,17 +48,11 @@ for user in records:
         if email_regex.fullmatch(user['email']):
             teachable_user = api.findUser(user['email'], withcache=False)
             if teachable_user != None:
-                enrolled = api.checkEnrollmentToCourse(teachable_user['id'], courseId)
-                logger.debug("Enrollment status for user {} into course {}: {}".format(user['fullname'], courseId, enrolled))
-                # register the user to the course if found
-                if enrolled == False:
-                    resp = api.enrollUserToCourse(teachable_user['id'], courseId)
-                    if 'message' in resp.keys():
-                        logger.info(resp['message'])
-                    else:
-                        logger.info(user['fullname']+' signed up!')
+                resp = api.enrollUserToCourse(teachable_user['id'], courseId)
+                if 'message' in resp.keys():
+                    logger.info(resp['message'])
                 else:
-                    logger.info('User {} already enrolled in course {}'.format(user['fullname'], courseId))
+                    logger.info(user['fullname']+' signed up!')
             else:
                 logger.info('User {} doesn\'t exist. Creating and registering'.format(user['fullname']))
                 # Add the user to the school and register to the course otherwise
