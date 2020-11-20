@@ -27,7 +27,8 @@ class TeachableAPI:
     URL_PAGES_CERTIFICATE = '/api/v1/pages?feature=certificate' # no idea what does it do
     URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID' #
 #    -data-binary '{"course_id":int,"user_id":int}' \
-    URL_ENROLLED_USER = 'admin/users/USER_ID/enrolled'
+    URL_ENROLLED_USER = '/admin/users/USER_ID/enrolled'
+    URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -199,31 +200,10 @@ class TeachableAPI:
         return responses
 
     def enrollUserToCourse(self, userId, courseId):
-        # check if the user has been previously enrolled
-        path = ''
-        cid = int(courseId)
-        enrolled_courses = self.getEnrolledCourses(userId)
-        courses = [int(p['course_id']) for p in enrolled_courses]
-        if cid in courses:
-            if not [p['is_active'] for p in enrolled_courses if
-                p['course_id'] == cid][0]:
-                # The user has been previously enrolled
-                # We just need to set is_active to True
-                path = self.URL_ENROLL_USER.replace('USER_ID',
-                       str(userId)).replace('COURSE_ID', str(courseId))
-                jsonBody = json.dumps({"is_active": True})
-                self.logger.debug('Enrolling user {} to course {} by changing is_active flag'.format(cid, courseId))
-                response = self._putJsonAt(path, jsonBody)
-            else:
-                # The user is already enrolled, nothing to do
-                self.logger.info('User {} is already enrolled to course {}'.format(userId,courseId))
-        else:
-            # The user has never been endolled to this course
-            # We need to enroll the user
-            path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
-            jsonBody = json.dumps({"course_id": int(courseId)})
-            response = self._postJsonAt(path, jsonBody)
-            # Now refreshing the status in the cache
+        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
+        jsonBody = json.dumps({"course_id": int(courseId)})
+        response = self._postJsonAt(path, jsonBody)
+        # Now refreshing the status in the cache
         self.getEnrolledCourses(userId, False)
         print(response)
         if response:
@@ -232,9 +212,9 @@ class TeachableAPI:
             return response
 
     def unenrollUserFromCourse(self, userId, courseId):
-        path = self.URL_UNENROLL_USER.replace('USER_ID',
-               str(userId)).replace('COURSE_ID', str(courseId))
-        response = self._postJsonAt(path, json.dumps({"is_active":"false"}))
+        path = self.URL_UNENROLL_USER
+        jsonBody = json.dumps({"course_id":int(courseId),"user_id":int(userId)})
+        response = self._putJsonAt(path,jsonBody)
         # updating also the cache for the enrolled courses
         self.getEnrolledCourses(userId, False)
         print(response)
