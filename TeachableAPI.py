@@ -153,8 +153,8 @@ class TeachableAPI:
         usersJsonArray = []
         for userRow in usersArray:
             userJson = {
-                "email":userRow[0],
-                "name":userRow[1],
+                "email":userRow['email'],
+                "name":userRow['fullname'],
                 "password":None,
                 "role":"student",
                 "course_id":courseId,
