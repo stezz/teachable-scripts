@@ -32,10 +32,10 @@ class TeachableAPI:
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.prepareSession(dir_path + '/config.ini')
-        self.expire_cache(dir_path + self.cache_file)
-        self.prepareCache(dir_path + self.cache_file)
         self.logger = logging.getLogger('TeachableAPI')
+        self.prepareSession(os.path.join(dir_path, 'config.ini'))
+        self.expire_cache(os.path.join(dir_path, self.cache_file))
+        self.prepareCache(os.path.join(dir_path, self.cache_file))
 
     def __del__(self):
         if self.cachedData:
@@ -58,11 +58,12 @@ class TeachableAPI:
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
         else:
-            self.logger.error('Missing config.ini file with login data')
+            self.logger.error('Missing config.ini file with login data (tried to find {})'.format(configfile))
             sys.exit(1)
 
 
     def prepareCache(self, CACHE_PATH):
+        self.logger.debug('Using cache {}'.format(CACHE_PATH))
         self.cachedData = shelve.open(CACHE_PATH)
 
 
