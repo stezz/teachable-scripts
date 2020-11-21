@@ -33,8 +33,8 @@ class TeachableAPI:
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.prepareSession(dir_path + '/config.ini')
-        self.expire_cache(dir_path + '/teachable_cache.out')
-        self.prepareCache(dir_path + '/teachable_cache.out')
+        self.expire_cache(dir_path + self.cache_file)
+        self.prepareCache(dir_path + self.cache_file)
         self.logger = logging.getLogger('TeachableAPI')
 
     def __del__(self):
@@ -54,6 +54,7 @@ class TeachableAPI:
             self.session = requests.Session()
             self.session.auth = (username, password)
             self.cache_expire = defaults['cache_expire']
+            self.cache_file = defaults['cache_file']
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
         else:
