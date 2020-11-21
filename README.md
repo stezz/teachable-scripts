@@ -1,14 +1,14 @@
 # Teachable Scripts
 You'll find here some script to manage your Teachable school using the unofficial Teachable API.
 
-This project was forked from [buzkall's project](https://github.com/buzkall/teachable-reports-export) because of major refactoring and added features which changes the goal of the original project.
+This project was forked from [maxbritto's project](https://github.com/maxbritto/teachable-scripts/) which was itself forked from [buzkall's project](https://github.com/buzkall/teachable-reports-export) (thanks guys!) because of major refactoring and added features which changes the goal of the original project.
 Pull requests are accepted if you want to add new features/apis.
 
 
    
 
 ## Disclaimer
-**This project is unofficial and not supported by Teachable. It is published and made open source in order to help other teachers but it comes with no garanty from the author or any contributor.**
+**This project is unofficial and not supported by Teachable. It is published and made open source in order to help other teachers but it comes with no warranty whatsoever from the author or any contributor.**
 
 Teachable.com doesn't have an official API to manage your school. It has some webhooks to trigger events and use them with services like Zapier, but there is no fast and practical solution to manage your school, especially for large student groups.
 The website is done using Angular, and needs some api urls to load the content, so this project uses those api to collect data and perform actions as if you were using the web admin panel.
@@ -17,16 +17,11 @@ The website is done using Angular, and needs some api urls to load the content, 
 Please take that into consideration before using this project and don't come to me to ask for repairs afterwards ;)** 
 
 ## Install and Config
-This script has been tested with python 2.7
+This script has been tested with python 3.8
 
-It requires the module "request" which can be installed using:
+The list of requirements can be found in the Pipfile and you can install them simply by issuing 
 
-    pip install requests
-    
-If you don't have pip installed you can do it with
-
-    sudo easy_install pip
-    
+    pipenv install 
 
 After that you should copy the file called config_example.ini, rename it as config.ini and set your username, password and yout teachable custom domain
     [DEFAULT]
@@ -41,27 +36,22 @@ alongside all the other variables that you find there
 If you want to enroll a whole list of users to a new course, you can do it with this script that receives a user list csv file (you can download those from your school admin panel) and a course id.
 
 Typing --help will show the parameters info
-    usage: enrollUsers.py [-h] [--csv_delimiter [CSV_DELIMITER]]
-                          input_file courseId
-    
-    Mass enroll users from csv file into a specified course
-    
+    usage: enrollUsers.py [-h] input_file courseId
+
+    Mass enroll users from Excel or CSV file into a specified course
+
     positional arguments:
-      input_file            Input csv file with the first column giving the user
-                            id (other columns are not used but can be present).
-                            This matches Teachable downloaded csv user lists
-      courseId              The id of the course they should be enrolled in
-    
+	  input_file  Excel or CSV file. The only needed columns are 'fullname' and 'email'
+	  courseId    The id of the course they should be enrolled in
+
     optional arguments:
-      -h, --help            show this help message and exit
-      --csv_delimiter [CSV_DELIMITER]
-                            Input csv file delimiter (default value : ,)
-    
+	  -h, --help  show this help message and exit
+
     ---
 
-Example, if you already have a user list csv file named userlist.csv and your course id is 1234 you can enroll of users in the file into this couse by typing :
+If your file is Userlist.xlsx and course id is 1234 you can enroll all the users in the file into this course by typing :
 
-    python enrollUsers.py path/to/file/userlist.csv 1234
+    python enrollUsers.py path/to/file/Userlist.xlsx 1234
     
 If some of thoses users are already enrolled in the course, Teachable API currently ignores them.
 
