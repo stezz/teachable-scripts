@@ -36,6 +36,7 @@ alongside all the other variables that you find there
 If you want to enroll a whole list of users to a new course, you can do it with this script that receives a user list csv file (you can download those from your school admin panel) and a course id.
 
 Typing --help will show the parameters info
+
     usage: enrollUsers.py [-h] input_file courseId
 
     Mass enroll users from Excel or CSV file into a specified course
@@ -59,12 +60,12 @@ If some of thoses users are already enrolled in the course, Teachable API curren
 
 Typing --help will show the parameters info
 
-  usage: getUserReport.py [-h] [--emails EMAILS [EMAILS ...]] [--output_file [OUTPUT_FILE]] [--search [SEARCH]] [--format [FORMAT]] [--detailed]
+    usage: getUserReport.py [-h] [--emails EMAILS [EMAILS ...]] [--output_file [OUTPUT_FILE]] [--search [SEARCH]] [--format [FORMAT]] [--detailed]
 
-  Get your Teachable students report. By default it will generate a progress summary report of all the students that are enrolled in all your courses. Pay
-  attention if you have a lot of students because this will be rate limited at some point
+    Get your Teachable students report. By default it will generate a progress summary report of all the students that are enrolled in all your courses. Pay
+    attention if you have a lot of students because this will be rate limited at some point
 
-  optional arguments:
+    optional arguments:
     -h, --help            show this help message and exit
     --emails EMAILS [EMAILS ...], -e EMAILS [EMAILS ...]
                         list of emails (separated by spaces) - cannot be used with -s
@@ -129,7 +130,8 @@ You can also specify an output file name by using the -o:
     
 
 ## Cache and rate limits
-To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.  
+To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.
+
 The cache path can be changed modifying the variable CACHE_PATH, by default it creates a file called teachable_cache.out in the same folder
 
-The cache file expires in a week, but this time can be changed modifying the constant MAXIMUM_CACHE_DURATION in the TeachableAPI.py file.
+The default cache file expiration is set to 3 days in the config_example.ini, but you can configure that how you want.
