@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "29f9f80819ed7886be2d7b0676ddbbae38e4853e1991b89a59842426cbc1db96"
+            "sha256": "31d873e3739d213e651f0bcd2360a1e2eef9fc1cb7e9e3e31bb798d50a90fc7f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -152,6 +152,14 @@
             "markers": "python_version >= '3.5'",
             "version": "==2.3.0"
         },
+        "pyexcel": {
+            "hashes": [
+                "sha256:39b0bb8f033d9b5523b126cf5a5259d1990ea82b8a23c8eab7aa5e23116803df",
+                "sha256:6aa6ece9cd3eda52c05d6687bb6c63580fc950bf48a8ca67df090193326d27b9"
+            ],
+            "index": "pypi",
+            "version": "==0.6.6"
+        },
         "pyexcel-io": {
             "hashes": [
                 "sha256:00f15f4bae2947de49b3206f2600f78780008e044380f7aafe0ce52969cda4ca",
@@ -225,6 +233,13 @@
             ],
             "markers": "python_version >= '3.5'",
             "version": "==0.0.8"
+        },
+        "texttable": {
+            "hashes": [
+                "sha256:ce0faf21aa77d806bbff22b107cc22cce68dc9438f97a2df32c93e9afa4ce436",
+                "sha256:f802f2ef8459058736264210f716c757cbf85007a30886d8541aa8c3404f1dda"
+            ],
+            "version": "==1.6.3"
         },
         "typepy": {
             "extras": [

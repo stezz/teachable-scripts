@@ -10,6 +10,7 @@ jinja2 = "*"
 requests = "*"
 pytablewriter = {extras = ["excel", "html"], version = "*"}
 pyexcel-xlsx = "*"
+pyexcel = "*"
 
 [requires]
 python_version = "3.8"
