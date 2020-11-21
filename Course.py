@@ -4,21 +4,28 @@ class Course:
         self.teachableAPI = teachableAPI
         self.id = courseData.get('id')
         self.name = courseData.get('name')
-        self.price = None
-        self.sections = None
+        self.price = self.getPrice()
+        self.sections = self.getSections()
+        self.lectures = self.getLectures()
 
     def getPrice(self):
-        if not self.price:
-            self.price = self.teachableAPI.getCoursePrice(self.id)
-        return self.price
+        price = self.teachableAPI.getCoursePrice(self.id)
+        return price
 
     def getSections(self):
-        if not self.sections:
-            sections = self.teachableAPI.getCourseSections(self.id)
-            self.sections = []
-            for sectionJson in sections:
-                self.sections.append(CourseSection(sectionJson))
-        return self.sections
+        sections = self.teachableAPI.getCourseSections(self.id)
+        sectionslist = []
+        for sectionJson in sections:
+            sectionslist.append(CourseSection(sectionJson))
+        return sectionslist
+
+    def getLectures(self):
+        '''Returns the list of all the lectures as CourseSectionLecture objects'''
+        lectures = []
+        if self.sections:
+            for section in self.sections:
+                lectures.extend(section.lectures)
+        return lectures
 
     def getLectureWithId(self,lectureId):
         for section in self.getSections():

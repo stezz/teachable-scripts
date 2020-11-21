@@ -27,7 +27,6 @@ class User:
                 courseID = courseData.get('course_id')
                 if ((course_id!=0) and courseID==course_id) or course_id==0:
                     course = school.getCourseWithId(courseID)
-                    course = school.getCourseWithId(courseID)
                     percentage = courseData.get('percent_complete')
                     update_time = datetime.datetime.strptime(courseData.get('updated_at'),'%Y-%m-%dT%H:%M:%SZ')
                     days_since_last = (now - update_time).days

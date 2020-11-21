@@ -148,6 +148,8 @@ class TeachableAPI:
         return result.get('products')
 
     def getUserReportCard(self,userId):
+        '''Gets the full report card fot userId, returning the full list of
+        lessons the user has completed'''
         path = self.URL_REPORT_CARD.replace('USER_ID',str(userId))
         return self._getJsonAt(path, False)
 
