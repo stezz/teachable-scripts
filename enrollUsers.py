@@ -37,7 +37,9 @@ for user in records:
     # search if the user with the given email exists
     if user['email'] != '':
         if api.check_email(user['email']):
-            teachable_user = api.findUser(user['email'], withcache=False)
+            api.usecache = False
+            teachable_user = api.findUser(user['email'])
+            api.usecache = True
             if teachable_user != None:
                 resp = api.enrollUserToCourse(teachable_user['id'], courseId)
                 if 'message' in resp.keys():

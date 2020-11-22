@@ -39,6 +39,7 @@ class TeachableAPI:
         self.prepareSession(os.path.join(dir_path, 'config.ini'))
         self.expire_cache(os.path.join(dir_path, self.cache_file))
         self.prepareCache(os.path.join(dir_path, self.cache_file))
+        self.usecache = True
         self._school = None
         self._courses = None
 
@@ -135,10 +136,10 @@ class TeachableAPI:
         school_info = self._getJsonAt(self.URL_SCHOOL_INFO)
         return school_info
 
-    def findUser(self, email, withcache=True):
+    def findUser(self, email):
         '''Searches for a specific user, the API uses the same endpoint, for
         one or many'''
-        userList = self._getJsonAt(self.URL_FIND_USER + email, withcache).get('users')
+        userList = self._getJsonAt(self.URL_FIND_USER + email).get('users')
         if len(userList) == 0:
             return None
         else:
@@ -275,8 +276,9 @@ class TeachableAPI:
         jsonBody = json.dumps({"course_id": int(courseId)})
         response = self._postJsonAt(path, jsonBody)
         # Now refreshing the status in the cache
-        self.getEnrolledCourses(userId, False)
-        print(response)
+        self.usecache = False
+        self.getEnrolledCourses(userId)
+        self.usecache = True
         if response:
             return json.loads(response)
         else:
@@ -287,17 +289,18 @@ class TeachableAPI:
         jsonBody = json.dumps({"course_id":int(courseId),"user_id":int(userId)})
         response = self._putJsonAt(path,jsonBody)
         # updating also the cache for the enrolled courses
-        self.getEnrolledCourses(userId, False)
-        print(response)
+        self.usecache = False
+        self.getEnrolledCourses(userId)
+        self.usecache = True
         if response:
             return json.loads(response)
         else:
             return response
 
-    def getEnrolledCourses(self, userId, withcache=True):
+    def getEnrolledCourses(self, userId):
         "Gets the courses the user is enrolled in"
         path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
-        return self._getJsonAt(path, withcache).get('enrollments')
+        return self._getJsonAt(path).get('enrollments')
         #return [p['course_id'] for p in response if 'course_id' in p
         #        and p['is_active'] == True]
 
@@ -307,8 +310,8 @@ class TeachableAPI:
         courses = self.getEnrolledCourses(userId)
         return int(courseId) in [p['course_id'] for p in courses if 'course_id' in p and p['is_active'] == True]
 
-    def _getJsonAt(self, path, withCache=True):
-        if withCache and path in self.cachedData:
+    def _getJsonAt(self, path):
+        if self.usecache and path in self.cachedData:
             self.logger.info(("Found cached data for " + path))
             return self.cachedData[path]
         else:

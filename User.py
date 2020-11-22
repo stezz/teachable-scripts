@@ -10,6 +10,7 @@ class User:
         self.api = api
         self._info = None
         self.email = email.strip()
+#        self._email = self.email = email.strip()
         self._name = self.name = name.strip()
 #        self._name = None
         self._id = None
@@ -38,9 +39,25 @@ class User:
         if not self.info:
             # we allow setting the name only if the user does not exist already
             # on the server side
-            print('setting name', name)
             self._name = name
         return self._name
+
+#    @property
+#    def email(self):
+#        # email getter property
+#        if not self._email and self.info:
+#            self._email = self.info.get('email').strip()
+#        return self._email
+#
+#    @email.setter
+#    def email(self, email):
+#        if self.api.check_email(email):
+#            print('Setting email')
+#            self._email = email
+#        else:
+#            self._email = None
+#        print(self._email)
+#        return self._email
 
     @property
     def id(self):
@@ -57,21 +74,23 @@ class User:
         return self._exists
 
     @property
-    def info(self, withcache=False):
+    def info(self):
         if not self._info:
-            print('setting info')
-            self._info = self.api.findUser(self.email, withcache)
-            print( self._info)
+            self._info = self.api.findUser(self.email)
             if not self._info:
+                pass
                 #self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))
-                print('User with {} email doesn\'t exist in this school yet'.format(self.email))
         return self._info
 
     def create(self, courseId=None):
         new = self.api._addUserToSchool(self, courseId)
         if new['message'] == 'Users imported':
-            property().getter(self.info(False))
-            print(self.info)
+            #self.logger.info('Waiting Teachable to update backend')
+            time.sleep(1)
+            self.api.usecache = False
+            #self.logger.debug('Refreshing info for user {}'.format(self.email))
+            property().getter(self.info)
+            self.api.usecache = True
         return new
 
     def getSummaryStats(self, school, course_id=0):
