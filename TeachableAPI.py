@@ -7,6 +7,7 @@ import time
 import configparser as cfgp
 import logging
 import School, Course, User
+import re
 
 
 class TeachableAPI:
@@ -45,16 +46,30 @@ class TeachableAPI:
         if self.cachedData:
             self.cachedData.close()
 
-
-    def prepareSession(self, configfile):
+    def get_config(self, configfile):
         if os.path.exists(configfile):
             config = cfgp.ConfigParser()
             config.read(configfile)
+        else:
+            self.logger.error('Missing config.ini file with login data (tried to find {})'.format(configfile))
+            config = None
+        return config
+
+    def check_email(self, email):
+        check = self.email_regex.fullmatch(email)
+        if not check:
+            self.logger.error('{} is not a valid email'.format(email))
+        return check
+
+    def prepareSession(self, configfile):
+        config = self.get_config(configfile)
+        if config:
             defaults = config['DEFAULT']
             username = defaults['username']
             password = defaults['password']
             site_url = defaults['site_url']
             self.siteUrl = site_url
+            self.email_regex = re.compile(defaults['email_regex'])
             self.session = requests.Session()
             self.session.auth = (username, password)
             self.cache_expire = defaults['cache_expire']
@@ -63,7 +78,6 @@ class TeachableAPI:
             self.session.headers.update({'Origin': site_url})
             self._school = None
         else:
-            self.logger.error('Missing config.ini file with login data (tried to find {})'.format(configfile))
             sys.exit(1)
 
 
@@ -151,7 +165,7 @@ class TeachableAPI:
         if len(userList) == 0:
             return None
         else:
-            return [User(self, user['email']) for user in userList]
+            return [User.User(self, user['email']) for user in userList]
 
     def findCourses(self, course):
         '''Searches for courses containing the specific text'''
@@ -183,9 +197,32 @@ class TeachableAPI:
     def addUsersToSchool(self, usersArray, courseId):
         usersJsonArray = []
         for userRow in usersArray:
+            if self.check_email(userRow['email']):
+                userJson = {
+                    "email":userRow['email'],
+                    "name":userRow['fullname'],
+                    "password":None,
+                    "role":"student",
+                    "course_id":courseId,
+                    "unsubscribe_from_marketing_emails":'false'
+                }
+                usersJsonArray.append(userJson)
+        payload = {
+            "user_list" :usersJsonArray,
+            "course_id": courseId,
+            "coupon_code": None,
+            "users_role": "student",
+            "author_bio_data": {}
+        }
+        resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+        return json.loads(resp)
+
+    def addUserToSchool(self, userdict, courseId):
+        usersJsonArray =[]
+        if self.check_email(userRow['email']):
             userJson = {
-                "email":userRow['email'],
-                "name":userRow['fullname'],
+                "email":userdict['email'],
+                "name":userdict['fullname'],
                 "password":None,
                 "role":"student",
                 "course_id":courseId,
@@ -202,24 +239,27 @@ class TeachableAPI:
         resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def addUserToSchool(self, userdict, courseId):
+    def _addUserToSchool(self, user, courseId=None):
         usersJsonArray =[]
-        userJson = {
-            "email":userdict['email'],
-            "name":userdict['fullname'],
-            "password":None,
-            "role":"student",
-            "course_id":courseId,
-            "unsubscribe_from_marketing_emails":'false'
-        }
-        usersJsonArray.append(userJson)
+        if self.check_email(user.email):
+            userJson = {
+                "email":user.email,
+                "name":user.name,
+                "password":None,
+                "role":"student",
+                "unsubscribe_from_marketing_emails":'false'
+            }
+            if courseId:
+                userJson["course_id"] = courseId
+            usersJsonArray.append(userJson)
         payload = {
             "user_list" :usersJsonArray,
-            "course_id": courseId,
             "coupon_code": None,
             "users_role": "student",
             "author_bio_data": {}
         }
+        if courseId:
+           payload["course_id"] = courseId
         resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 

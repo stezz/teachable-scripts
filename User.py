@@ -6,12 +6,17 @@ import datetime
 
 class User:
     def __init__(self, api, email='', name=''):
+#    def __init__(self, api, email=''):
         self.api = api
+        self._info = None
         self.email = email.strip()
         self._name = self.name = name.strip()
+#        self._name = None
         self._id = None
         self._reportCard = None
-        self._info = None
+        self._exists = None
+
+
 
     @property
     def reportCard(self):
@@ -23,7 +28,7 @@ class User:
     @property
     def name(self):
         # name getter property
-        if not self._name:
+        if not self._name and self.info:
             self._name = self.info.get('name').strip()
         return self._name
 
@@ -33,6 +38,7 @@ class User:
         if not self.info:
             # we allow setting the name only if the user does not exist already
             # on the server side
+            print('setting name', name)
             self._name = name
         return self._name
 
@@ -40,7 +46,7 @@ class User:
     def id(self):
         if not self._id:
             if self.info:
-                self._id = self.info.get('id').strip()
+                self._id = self.info.get('id')
         return self._id
 
     @property
@@ -51,13 +57,23 @@ class User:
         return self._exists
 
     @property
-    def info(self):
+    def info(self, withcache=False):
         if not self._info:
-            info = self.api.findUser(self.email)
-            if not info:
-                self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))
+            print('setting info')
+            self._info = self.api.findUser(self.email, withcache)
+            print( self._info)
+            if not self._info:
+                #self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))
+                print('User with {} email doesn\'t exist in this school yet'.format(self.email))
         return self._info
-            
+
+    def create(self, courseId=None):
+        new = self.api._addUserToSchool(self, courseId)
+        if new['message'] == 'Users imported':
+            property().getter(self.info(False))
+            print(self.info)
+        return new
+
     def getSummaryStats(self, school, course_id=0):
         '''Returns a list of lists with a summary stat for the specific user'''
         stats =[]
@@ -138,3 +154,9 @@ class User:
     def isEnrolledToCourse(self, courseId):
         "Returns true if user is enrolled to courseId"
         return self.api.checkEnrollmentToCourse(self.id, courseId)
+
+    def __str__(self):
+        return '{} <{}>'.format(self.name, self.email)
+
+    def __repr__(self):
+        return '<User({})>'.format(self.email)
