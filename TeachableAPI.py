@@ -6,6 +6,7 @@ import os.path
 import time
 import configparser as cfgp
 import logging
+import School, Course, User
 
 
 class TeachableAPI:
@@ -14,6 +15,7 @@ class TeachableAPI:
     cachedData = None
     URL_COURSES = '/api/v1/courses'
     URL_GET_ALL_USERS = '/api/v1/users'
+    URL_SCHOOL_INFO = '/api/v1/school'
     URL_FIND_USER = '/api/v1/users?name_or_email_cont='
     URL_REPORT_CARD = '/api/v1/users/USER_ID/report_card'
     URL_COURSE_REPORT = '/api/v1/users/USER_ID/course_report'
@@ -36,6 +38,8 @@ class TeachableAPI:
         self.prepareSession(os.path.join(dir_path, 'config.ini'))
         self.expire_cache(os.path.join(dir_path, self.cache_file))
         self.prepareCache(os.path.join(dir_path, self.cache_file))
+        self._school = None
+        self._courses = None
 
     def __del__(self):
         if self.cachedData:
@@ -57,6 +61,7 @@ class TeachableAPI:
             self.cache_file = defaults['cache_file']
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
+            self._school = None
         else:
             self.logger.error('Missing config.ini file with login data (tried to find {})'.format(configfile))
             sys.exit(1)
@@ -76,6 +81,17 @@ class TeachableAPI:
             if cache_antiquity > MAXIMUM_CACHE_DURATION:
                 os.remove(CACHE_PATH)
                 self.logger.warning('Cache file dumped!')
+    @property
+    def school(self):
+        if not self._school:
+            self._school = School.School(self)
+        return self._school
+
+    @property
+    def courses(self):
+        if not self._courses:
+            self._courses = self.school.courses
+        return self._courses
 
     def getLeaderboardCSV(self, course, filename):
         '''Gets a course JSON dict as input'''
@@ -101,6 +117,10 @@ class TeachableAPI:
         course_info = self._getJsonAt(self.URL_COURSES)
         return course_info.get('courses')
 
+    def getSchoolInfo(self):
+        school_info = self._getJsonAt(self.URL_SCHOOL_INFO)
+        return school_info
+
     def findUser(self, email, withcache=True):
         '''Searches for a specific user, the API uses the same endpoint, for
         one or many'''
@@ -125,6 +145,13 @@ class TeachableAPI:
             return None
         else:
             return userList
+
+    def _getAllUsers(self):
+        userList = self._getJsonAt(self.URL_GET_ALL_USERS).get('users')
+        if len(userList) == 0:
+            return None
+        else:
+            return [User(self, user['email']) for user in userList]
 
     def findCourses(self, course):
         '''Searches for courses containing the specific text'''
@@ -264,7 +291,7 @@ class TeachableAPI:
         self.logger.debug((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
         jsonResponseBody = self.session.post(fullUrl, data=jsonBody)
         return jsonResponseBody.text
-    
+
     def _putJsonAt(self, path, jsonBody):
         fullUrl = self.siteUrl + path
         self.logger.debug(("Uploading PUT data to " + fullUrl))

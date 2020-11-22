@@ -5,19 +5,59 @@ import time
 import datetime
 
 class User:
-    def __init__(self, teachableAPI, email):
-        self.teachableAPI = teachableAPI
-        email = email.strip()
-        userData = self.teachableAPI.findUser(email)
-        if not userData:
-            print('There is no user with that email')
-            sys.exit(1)
-        else:
-            self.email = email
-            self.name = userData.get('name').strip()
-            self.id = userData.get('id')
-            self.reportCard = self.teachableAPI.getUserReportCard(self.id)
+    def __init__(self, api, email='', name=''):
+        self.api = api
+        self.email = email.strip()
+        self._name = self.name = name.strip()
+        self._id = None
+        self._reportCard = None
+        self._info = None
 
+    @property
+    def reportCard(self):
+        if not self._reportCard:
+            if self.info:
+                self._reportCard = self.api.getUserReportCard(self.id)
+        return self._reportCard
+
+    @property
+    def name(self):
+        # name getter property
+        if not self._name:
+            self._name = self.info.get('name').strip()
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        #name setter property
+        if not self.info:
+            # we allow setting the name only if the user does not exist already
+            # on the server side
+            self._name = name
+        return self._name
+
+    @property
+    def id(self):
+        if not self._id:
+            if self.info:
+                self._id = self.info.get('id').strip()
+        return self._id
+
+    @property
+    def exists(self):
+        if not self._exists:
+            if not self.info:
+                self._exists = False
+        return self._exists
+
+    @property
+    def info(self):
+        if not self._info:
+            info = self.api.findUser(self.email)
+            if not info:
+                self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))
+        return self._info
+            
     def getSummaryStats(self, school, course_id=0):
         '''Returns a list of lists with a summary stat for the specific user'''
         stats =[]
@@ -82,7 +122,7 @@ class User:
     def getDetailedStats(self, school):
         '''Returns a list of lists with detailed stats for the specific user'''
         data = []
-        stats = self.teachableAPI.getUserCoursesReport(self.id)
+        stats = self.api.getUserCoursesReport(self.id)
         lecturesStats = stats.get('lecture_progresses')
         for lectureProgress in lecturesStats:
             completedDate = datetime.datetime.strptime(lectureProgress.get('completed_at'),'%Y-%m-%dT%H:%M:%SZ')
@@ -97,4 +137,4 @@ class User:
 
     def isEnrolledToCourse(self, courseId):
         "Returns true if user is enrolled to courseId"
-        return self.teachableAPI.checkEnrollmentToCourse(self.id, courseId)
+        return self.api.checkEnrollmentToCourse(self.id, courseId)
