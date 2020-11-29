@@ -83,14 +83,20 @@ class User:
         return self._info
 
     def create(self, courseId=None):
-        new = self.api._addUserToSchool(self, courseId)
-        if new['message'] == 'Users imported':
-            #self.logger.info('Waiting Teachable to update backend')
-            time.sleep(1)
-            self.api.usecache = False
-            #self.logger.debug('Refreshing info for user {}'.format(self.email))
-            property().getter(self.info)
-            self.api.usecache = True
+        '''Create the user on the server side, if the user doesn't exist and it
+        has valid email '''
+        if self.api.check_email(self.email):
+            new = self.api._addUserToSchool(self, courseId)
+            if new['message'] == 'Users imported':
+                #self.logger.info('Waiting Teachable to update backend')
+                time.sleep(1)
+                self.api.usecache = False
+                #self.logger.debug('Refreshing info for user {}'.format(self.email))
+                property().getter(self.info)
+                self.api.usecache = True
+        else:
+            new = {}
+            new['message'] = '{} is not a valid email address'.format(self.email)
         return new
 
     def getSummaryStats(self, school, course_id=0):
