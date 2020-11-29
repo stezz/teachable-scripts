@@ -316,12 +316,12 @@ class TeachableAPI:
             return self.cachedData[path]
         else:
             fullUrl = self.siteUrl + path
-            self.logger.info(("Downloading data from " + fullUrl))
+            self.logger.debug(("Downloading data from " + fullUrl))
             jsonData = self.session.get(fullUrl).json()
             if jsonData.get('error'):
                 self.logger.error('Check Teachable credentials')
                 sys.exit(1)
-            self.logger.info('Updating cache data for ' + path)
+            self.logger.debug('Updating cache data for ' + path)
             self.cachedData[path] = jsonData
             return jsonData
 

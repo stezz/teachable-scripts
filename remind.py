@@ -50,7 +50,6 @@ def main():
     smtp_from = defaults['smtp_from']
 
     now = datetime.datetime.now()
-    alert_days_int = int(defaults['alert_days'])
     logger.info('Connecting to server...')
     server_str = smtp_server+':'+str(smtp_port)
     server = EmailConnection(server_str, smtp_user, smtp_pwd)
@@ -60,6 +59,8 @@ def main():
 
     for section in config.keys():
         if section != 'DEFAULT':
+            alert_days_int = int(config[section]['alert_days'])
+            warning_days = int(config[section]['warning'])
             data = []
             warn_students = []
             users_mails = [x.get('email') for x in api.findMultiUser(config[section]['emailsearch'])]
@@ -71,8 +72,6 @@ def main():
                 data += summary_stats
                 if summary_stats:
                     name, email_addr, course, updated_at, completed, days_since = summary_stats[0]
-                    if completed == 0 or days_since > int(config[section]['warning']):
-                        warn_students += summary_stats
                     message = ''
                     updated_at = datetime.datetime.strptime(updated_at,"%Y-%m-%d %H:%M:%S")
                     completed = int(completed)
@@ -82,10 +81,14 @@ def main():
                     cc_addr = None
                     msg_dict = {'firstname':firstname, 'days_since':days_since, 'course':course,
                                 'date':updated_at, 'url':site_url, 'name_from':smtp_from}
-                    if days_since > alert_days_int and completed > 0 and completed < 99:
+                    not_started = (completed == 0 and days_since > alert_days_int)
+                    inactive = (days_since > warning_days and completed < 100)
+                    if not_started or inactive:
+                        warn_students += summary_stats
+                    if completed > 0 and inactive:
                         subject ='Don\'t forget the {course} course'.format(course=course)
                         message = render_template('email_inactive.txt', msg_dict)
-                    elif completed == 0 and days_since > alert_days_int:
+                    elif not_started:
                         subject ='Don\'t forget the {course} course'.format(course=course)
                         message = render_template('email_notstarted.txt', msg_dict)
                     if message:
@@ -123,7 +126,6 @@ def main():
                     markup_txt.headers = headers
                     markup_txt.value_matrix = warn_students
                     warn_text = markup_txt.dumps()
-                    #print(warn_text)
                 else:
                     warn_text = ''
                 msg_dict = {'firstname':firstname, 'course':course,
