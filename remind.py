@@ -71,7 +71,7 @@ def main():
                 data += summary_stats
                 if summary_stats:
                     name, email_addr, course, updated_at, completed, days_since = summary_stats[0]
-                    if completed == 0 or days_since > int(config[section]['warning']):
+                    if int(completed) == 0 or (days_since > int(config[section]['warning']) and int(completed) < 100):
                         warn_students += summary_stats
                     message = ''
                     updated_at = datetime.datetime.strptime(updated_at,"%Y-%m-%d %H:%M:%S")
@@ -123,7 +123,6 @@ def main():
                     markup_txt.headers = headers
                     markup_txt.value_matrix = warn_students
                     warn_text = markup_txt.dumps()
-                    #print(warn_text)
                 else:
                     warn_text = ''
                 msg_dict = {'firstname':firstname, 'course':course,
