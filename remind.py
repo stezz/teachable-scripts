@@ -82,8 +82,9 @@ def main():
                     msg_dict = {'firstname':firstname, 'days_since':days_since, 'course':course,
                                 'date':updated_at, 'url':site_url, 'name_from':smtp_from}
                     not_started = (completed == 0 and days_since > alert_days_int)
-                    inactive = (days_since > warning_days and completed < 100)
-                    if not_started or inactive:
+                    inactive = (days_since > alert_days_int and completed < 100)
+                    flagged = (days_since > warning_days and completed < 100)
+                    if not_started or flagged:
                         warn_students += summary_stats
                     if completed > 0 and inactive:
                         subject ='Don\'t forget the {course} course'.format(course=course)
