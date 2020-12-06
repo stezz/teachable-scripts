@@ -151,7 +151,7 @@ class TeachableAPI:
         '''Gets the full report card fot userId, returning the full list of
         lessons the user has completed'''
         path = self.URL_REPORT_CARD.replace('USER_ID',str(userId))
-        return self._getJsonAt(path, False)
+        return self._getJsonAt(path)
 
     def addUsersToSchool(self, usersArray, courseId):
         usersJsonArray = []

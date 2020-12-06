@@ -10,6 +10,7 @@ from User import User
 from TeachableAPI import TeachableAPI
 from School import School
 import pytablewriter as ptw
+import shelve
 
 import logging
 import logging.config
@@ -37,6 +38,17 @@ def get_config(configfile):
         logger.error('Missing config.ini file with login data')
         sys.exit(1)
 
+def get_last_notif(user_mail, notif_status):
+    """Returns the notification status dict"""
+    try:
+        notified = notif_status[user_mail]
+        logger.debug('{} was sent a notification last time on {}'.format(user_mail, notified))
+    except KeyError:
+        logger.debug('{} was never sent a notification'.format(user_mail))
+        notified = datetime.date(1970,1,1)
+    return notified
+
+
 def main():
     config = get_config('./config.ini')
     defaults = config['DEFAULT']
@@ -48,6 +60,7 @@ def main():
     smtp_port = defaults['smtp_port']
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
+    notifications_db = defaults['notifications_db']
 
     now = datetime.datetime.now()
     logger.info('Connecting to server...')
@@ -55,18 +68,26 @@ def main():
     server = EmailConnection(server_str, smtp_user, smtp_pwd)
     api = TeachableAPI()
     school = School(api)
+    # notif_status is a dictionary that support several kind of notification
+    # types and we store it in a file that is defined in the config
+    notif_status = shelve.open(notifications_db)
+
+    today = datetime.date.today()
     logging.debug('This is just for checking the log levels')
 
     for section in config.keys():
         if section != 'DEFAULT':
             alert_days_int = int(config[section]['alert_days'])
             warning_days = int(config[section]['warning'])
+            notif_freq = int(config[section]['freq'])
             data = []
             warn_students = []
             users_mails = [x.get('email') for x in api.findMultiUser(config[section]['emailsearch'])]
             # First send a reminder to all that need it
             for user_mail in users_mails:
                 user = User(api, user_mail)
+                notified = get_last_notif(user_mail, notif_status)
+                since_last_notif = (today - notified).days
                 summary_stats = user.getSummaryStats(school, int(config[section]['course_id']))
                 # Saves the overall stats separately
                 data += summary_stats
@@ -94,12 +115,12 @@ def main():
                         message = render_template('email_notstarted.txt', msg_dict)
                     if message:
                         logger.info('Preparing the message for '+to_addr)
-                        #print(message)
                         mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                           subject=subject, message=message)
-                        if args.dryrun != True:
+                        if args.dryrun != True and since_last_notif > notif_freq:
                             logger.info('Sending...')
                             server.send(mail, bcc=smtp_user)
+                            notif_status[user_mail] = today
                     else:
                         logger.info('No reminder for '+to_addr)
             if data:
@@ -133,16 +154,20 @@ def main():
                 'name_from':smtp_from, 'warn_text':warn_text}
                 subject ='Weekly report for {course} course'.format(course=course)
                 message = render_template('weekly_report.html', msg_dict)
+                notified = get_last_notif(email_addr, notif_status)
+                since_last_notif = (today - notified).days
                 logger.info('Preparing the message for '+to_addr)
-                #print(message)
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                   message_type='html', subject=subject, message=message,
                   attachments=[ofile])
-                if args.dryrun != True:
+                if args.dryrun != True and since_last_notif > notif_freq:
                     logger.info('Sending...')
                     server.send(mail, bcc=smtp_user)
+                    notif_status[email_addr] = today
 
     server.close()
+    notif_status.sync()
+    notif_status.close()
 
 if __name__ == '__main__':
     args = parse_arguments()
