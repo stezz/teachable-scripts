@@ -2,13 +2,15 @@
 import argparse
 import datetime
 import configparser as cfgp
-from email_utils import EmailConnection, Email, render_template
 from email.header import Header
 from email.utils import formataddr
 import os.path
-from User import User
-from TeachableAPI import TeachableAPI
-from School import School
+from teachable.user import User
+from teachable.api import TeachableAPI
+from teachable.school import School
+from email_utils.email_utils import EmailConnection
+from email_utils.email_utils import Email
+from email_utils.email_utils import render_template
 import pytablewriter as ptw
 import shelve
 

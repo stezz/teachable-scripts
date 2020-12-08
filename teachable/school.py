@@ -1,5 +1,5 @@
-import TeachableAPI
-from Course import Course
+from teachable.api import TeachableAPI
+from teachable.course import Course
 
 class School:
     def __init__(self, teachableAPI):
