@@ -41,6 +41,7 @@ smtp_user = defaults['smtp_user']
 smtp_port = defaults['smtp_port']
 smtp_server = defaults['smtp_server']
 smtp_from = defaults['smtp_from']
+templates_dir = defaults['templates_dir']
 
 now = datetime.datetime.now()
 alert_days = datetime.timedelta(days=int(defaults['alert_days']))
@@ -68,10 +69,10 @@ with open(args.filename) as csvfile:
           'date':updated_at, 'url':site_url, 'name_from':smtp_from}
         if updated_at < alert_limit and completed > 0 and completed < 99:
             subject ='Don\'t forget the {course} course'.format(course=course)
-            message = render_template('email_inactive.txt', msg_dict)
+            message = render_template(os.path.join(templates_dir, 'email_inactive.txt'), msg_dict)
         elif completed == 0:
             subject ='Don\'t forget the {course} course'.format(course=course)
-            message = render_template('email_notstarted.txt', msg_dict)
+            message = render_template(os.path.join(templates_dir, 'email_notstarted.txt'), msg_dict)
         if message:
             print('Preparing the message for '+to_addr)
             mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,

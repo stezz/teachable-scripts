@@ -61,6 +61,7 @@ def main():
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
     notifications_db = defaults['notifications_db']
+    templates_dir = defaults['templates_dir']
 
     now = datetime.datetime.now()
     logger.info('Connecting to server...')
@@ -108,16 +109,16 @@ def main():
                     if not_started or flagged:
                         warn_students += summary_stats
                     if completed > 0 and inactive:
-                        subject ='Don\'t forget the {course} course'.format(course=course)
-                        message = render_template('email_inactive.txt', msg_dict)
+                        subject = 'Don\'t forget the {course} course'.format(course=course)
+                        message = render_template(os.path.join(templates_dir, 'email_inactive.txt'), msg_dict)
                     elif not_started:
-                        subject ='Don\'t forget the {course} course'.format(course=course)
-                        message = render_template('email_notstarted.txt', msg_dict)
+                        subject = 'Don\'t forget the {course} course'.format(course=course)
+                        message = render_template(os.path.join(templates_dir, 'email_notstarted.txt'), msg_dict)
                     if message:
                         logger.info('Preparing the message for '+to_addr)
                         mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                           subject=subject, message=message)
-                        if args.dryrun != True and since_last_notif > notif_freq:
+                        if args.dryrun != True and since_last_notif >= notif_freq:
                             logger.info('Sending...')
                             server.send(mail, bcc=smtp_user)
                             notif_status[user_mail] = today
@@ -153,14 +154,14 @@ def main():
                 msg_dict = {'firstname':firstname, 'course':course,
                 'name_from':smtp_from, 'warn_text':warn_text}
                 subject ='Weekly report for {course} course'.format(course=course)
-                message = render_template('weekly_report.html', msg_dict)
+                message = render_template(os.path.join(templates_dir, 'weekly_report.html'), msg_dict)
                 notified = get_last_notif(email_addr, notif_status)
                 since_last_notif = (today - notified).days
                 logger.info('Preparing the message for '+to_addr)
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                   message_type='html', subject=subject, message=message,
                   attachments=[ofile])
-                if args.dryrun != True and since_last_notif > notif_freq:
+                if args.dryrun != True and since_last_notif >= notif_freq:
                     logger.info('Sending...')
                     server.send(mail, bcc=smtp_user)
                     notif_status[email_addr] = today
