@@ -117,7 +117,7 @@ def main():
                         logger.info('Preparing the message for '+to_addr)
                         mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                           subject=subject, message=message)
-                        if args.dryrun != True and since_last_notif > notif_freq:
+                        if args.dryrun != True and since_last_notif >= notif_freq:
                             logger.info('Sending...')
                             server.send(mail, bcc=smtp_user)
                             notif_status[user_mail] = today
@@ -160,7 +160,7 @@ def main():
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                   message_type='html', subject=subject, message=message,
                   attachments=[ofile])
-                if args.dryrun != True and since_last_notif > notif_freq:
+                if args.dryrun != True and since_last_notif >= notif_freq:
                     logger.info('Sending...')
                     server.send(mail, bcc=smtp_user)
                     notif_status[email_addr] = today
