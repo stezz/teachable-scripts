@@ -16,8 +16,18 @@ import shelve
 
 import logging
 import logging.config
-logging.config.fileConfig(fname='logconf.ini', disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
+import sys
+
+def setup_logging(logconf):
+    if os.path.exists(logconf):
+        print('Found logconf in {}'.format(logconf))
+        logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
+        logger = logging.getLogger(__name__)
+    else:
+        print('Log conf doesn\'t exist [{}]'.format(logconf))
+        print('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
+        sys.exit()
+    return logger
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='''Polls Teachable and sends
@@ -35,9 +45,11 @@ def get_config(configfile):
     if os.path.exists(configfile):
         config = cfgp.ConfigParser()
         config.read(configfile)
+        logger.debug('Found config.ini at {}'.format(configfile))
         return config
     else:
-        logger.error('Missing config.ini file with login data')
+        logger.error('Missing config.ini file with login data [looking for {}]'.format(configfile))
+        logger.error('Make sure that you have a config.ini file in {}'.format(sys.prefix))
         sys.exit(1)
 
 def get_last_notif(user_mail, notif_status):
@@ -51,8 +63,9 @@ def get_last_notif(user_mail, notif_status):
     return notified
 
 
+logger = setup_logging(os.path.join(sys.prefix,'etc/logconf.ini'))
 def main():
-    config = get_config('./config.ini')
+    config = get_config(os.path.join(sys.prefix,'config.ini'))
     defaults = config['DEFAULT']
     username = defaults['username']
     password = defaults['password']
