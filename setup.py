@@ -5,16 +5,15 @@ https://github.com/pypa/sampleproject
 Modified by Madoshakalaka@Github (dependency links added)
 """
 
-# Always prefer setuptools over distutils
-from setuptools import setup, find_packages
-from os import path
-import sys
-
 # io.open is needed for projects that support Python 2.7
 # It ensures open() defaults to text mode with universal newlines,
 # and accepts an argument to specify the text encoding
 # Python 3 only projects can skip this import
 from io import open
+from os import path
+
+# Always prefer setuptools over distutils
+from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -66,4 +65,3 @@ setup(
         "Source": "https://github.com/stezz/teachable-scripts/",
     },
 )
-

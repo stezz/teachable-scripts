@@ -1,33 +1,35 @@
 # coding: utf8
 import argparse
-import datetime
 import configparser as cfgp
-from email.header import Header
-from email.utils import formataddr
-import os.path
-from teachable.user import User
-from teachable.api import TeachableAPI
-from teachable.school import School
-from email_utils.email_utils import EmailConnection
-from email_utils.email_utils import Email
-from email_utils.email_utils import render_template
-import pytablewriter as ptw
-import shelve
-
+import datetime
 import logging
 import logging.config
+import os.path
+import shelve
 import sys
+from email.utils import formataddr
+
+import pytablewriter as ptw
+
+from email_utils.email_utils import Email
+from email_utils.email_utils import EmailConnection
+from email_utils.email_utils import render_template
+from teachable.api import TeachableAPI
+from teachable.school import School
+from teachable.user import User
+
 
 def setup_logging(logconf):
     if os.path.exists(logconf):
         print('Found logconf in {}'.format(logconf))
         logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
-        logger = logging.getLogger(__name__)
+        lg = logging.getLogger(__name__)
     else:
         print('Log conf doesn\'t exist [{}]'.format(logconf))
         print('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
         sys.exit()
-    return logger
+    return lg
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='''Polls Teachable and sends
@@ -35,11 +37,12 @@ def parse_arguments():
     in a week.''')
 
     parser.add_argument('--dryrun', '-d', action='store_true',
-    default='False', help='''Don't send the messages for real, just do a dry
-    run''')
+                        default='False', help='''Don't send the messages for 
+                        real, just do a dry run''')
 
-    args = parser.parse_args()
-    return args
+    arguments = parser.parse_args()
+    return arguments
+
 
 def get_config(configfile):
     if os.path.exists(configfile):
@@ -52,6 +55,7 @@ def get_config(configfile):
         logger.error('Make sure that you have a config.ini file in {}'.format(sys.prefix))
         sys.exit(1)
 
+
 def get_last_notif(user_mail, notif_status):
     """Returns the notification status dict"""
     try:
@@ -59,16 +63,16 @@ def get_last_notif(user_mail, notif_status):
         logger.debug('{} was sent a notification last time on {}'.format(user_mail, notified))
     except KeyError:
         logger.debug('{} was never sent a notification'.format(user_mail))
-        notified = datetime.date(1970,1,1)
+        notified = datetime.date(1970, 1, 1)
     return notified
 
 
-logger = setup_logging(os.path.join(sys.prefix,'etc/logconf.ini'))
+logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
+
+
 def main():
-    config = get_config(os.path.join(sys.prefix,'config.ini'))
+    config = get_config(os.path.join(sys.prefix, 'config.ini'))
     defaults = config['DEFAULT']
-    username = defaults['username']
-    password = defaults['password']
     site_url = defaults['site_url']
     smtp_pwd = defaults['smtp_pwd']
     smtp_user = defaults['smtp_user']
@@ -110,14 +114,14 @@ def main():
                 if summary_stats:
                     name, email_addr, course, updated_at, completed, days_since = summary_stats[0]
                     message = ''
-                    updated_at = datetime.datetime.strptime(updated_at,"%Y-%m-%d %H:%M:%S")
+                    updated_at = datetime.datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
                     completed = int(completed)
                     firstname = name.split()[0]
                     from_addr = formataddr((smtp_from, smtp_user))
                     to_addr = formataddr((name, email_addr))
                     cc_addr = None
-                    msg_dict = {'firstname':firstname, 'days_since':days_since, 'course':course,
-                                'date':updated_at, 'url':site_url, 'name_from':smtp_from}
+                    msg_dict = {'firstname': firstname, 'days_since': days_since, 'course': course,
+                                'date': updated_at, 'url': site_url, 'name_from': smtp_from}
                     not_started = (completed == 0 and days_since > alert_days_int)
                     inactive = (days_since > alert_days_int and completed < 100)
                     flagged = (days_since > warning_days and completed < 100)
@@ -132,8 +136,8 @@ def main():
                     if message:
                         logger.info('Preparing the message for '+to_addr)
                         mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
-                          subject=subject, message=message)
-                        if args.dryrun != True and since_last_notif >= notif_freq:
+                                     subject=subject, message=message)
+                        if args.dryrun is not True and since_last_notif >= notif_freq:
                             logger.info('Sending...')
                             server.send(mail, bcc=smtp_user)
                             notif_status[user_mail] = today
@@ -166,17 +170,17 @@ def main():
                     warn_text = markup_txt.dumps()
                 else:
                     warn_text = ''
-                msg_dict = {'firstname':firstname, 'course':course,
-                'name_from':smtp_from, 'warn_text':warn_text}
-                subject ='Weekly report for {course} course'.format(course=course)
+                msg_dict = {'firstname': firstname, 'course': course,
+                            'name_from': smtp_from, 'warn_text': warn_text}
+                subject = 'Weekly report for {course} course'.format(course=course)
                 message = render_template(os.path.join(templates_dir, 'weekly_report.html'), msg_dict)
                 notified = get_last_notif(email_addr, notif_status)
                 since_last_notif = (today - notified).days
                 logger.info('Preparing the message for '+to_addr)
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
-                  message_type='html', subject=subject, message=message,
-                  attachments=[ofile])
-                if args.dryrun != True and since_last_notif >= notif_freq:
+                             message_type='html', subject=subject, message=message,
+                             attachments=[ofile])
+                if args.dryrun is not True and since_last_notif >= notif_freq:
                     logger.info('Sending...')
                     server.send(mail, bcc=smtp_user)
                     notif_status[email_addr] = today
@@ -184,6 +188,7 @@ def main():
     server.close()
     notif_status.sync()
     notif_status.close()
+
 
 if __name__ == '__main__':
     args = parse_arguments()
