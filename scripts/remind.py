@@ -1,6 +1,5 @@
 # coding: utf8
 import argparse
-import configparser as cfgp
 import datetime
 import logging
 import logging.config
@@ -21,12 +20,12 @@ from teachable.user import User
 
 def setup_logging(logconf):
     if os.path.exists(logconf):
-        print('Found logconf in {}'.format(logconf))
+        logging.debug('Found logconf in {}'.format(logconf))
         logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
         lg = logging.getLogger(__name__)
     else:
-        print('Log conf doesn\'t exist [{}]'.format(logconf))
-        print('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
+        logging.error('Log conf doesn\'t exist [{}]'.format(logconf))
+        logging.error('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
         sys.exit()
     return lg
 
@@ -43,19 +42,6 @@ def parse_arguments():
     arguments = parser.parse_args()
     return arguments
 
-
-def get_config(configfile):
-    if os.path.exists(configfile):
-        config = cfgp.ConfigParser()
-        config.read(configfile)
-        logger.debug('Found config.ini at {}'.format(configfile))
-        return config
-    else:
-        logger.error('Missing config.ini file with login data [looking for {}]'.format(configfile))
-        logger.error('Make sure that you have a config.ini file in {}'.format(sys.prefix))
-        sys.exit(1)
-
-
 def get_last_notif(user_mail, notif_status):
     """Returns the notification status dict"""
     try:
@@ -70,8 +56,11 @@ def get_last_notif(user_mail, notif_status):
 logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
 
 
-def main():
-    config = get_config(os.path.join(sys.prefix, 'config.ini'))
+def remind_app(args):
+    """Main application"""
+    api = TeachableAPI()
+    school = School(api)
+    config = api.config
     defaults = config['DEFAULT']
     site_url = defaults['site_url']
     smtp_pwd = defaults['smtp_pwd']
@@ -86,8 +75,6 @@ def main():
     logger.info('Connecting to server...')
     server_str = smtp_server+':'+str(smtp_port)
     server = EmailConnection(server_str, smtp_user, smtp_pwd)
-    api = TeachableAPI()
-    school = School(api)
     # notif_status is a dictionary that support several kind of notification
     # types and we store it in a file that is defined in the config
     notif_status = shelve.open(notifications_db)
@@ -189,7 +176,10 @@ def main():
     notif_status.sync()
     notif_status.close()
 
+def main():
+    args = parse_arguments()
+    remind_app(args)
+
 
 if __name__ == '__main__':
-    args = parse_arguments()
     main()

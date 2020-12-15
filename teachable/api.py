@@ -33,7 +33,7 @@ class TeachableAPI:
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.logger = logging.getLogger('TeachableAPI')
-        self.prepareSession(os.path.join(dir_path, 'config.ini'))
+        self.prepareSession()
         self.expire_cache(os.path.join(dir_path, self.cache_file))
         self.prepareCache(os.path.join(dir_path, self.cache_file))
 
@@ -41,25 +41,31 @@ class TeachableAPI:
         if self.cachedData:
             self.cachedData.close()
 
-
-    def prepareSession(self, configfile):
+    def get_config(self, configfile):
+        """Gets config options"""
         if os.path.exists(configfile):
             config = cfgp.ConfigParser()
             config.read(configfile)
-            defaults = config['DEFAULT']
-            username = defaults['username']
-            password = defaults['password']
-            site_url = defaults['site_url']
-            self.siteUrl = site_url
-            self.session = requests.Session()
-            self.session.auth = (username, password)
-            self.cache_expire = defaults['cache_expire']
-            self.cache_file = defaults['cache_file']
-            # self.session.headers.update({'x-test': 'true'})
-            self.session.headers.update({'Origin': site_url})
+            logging.debug('Found config.ini at {}'.format(configfile))
+            return config
         else:
-            self.logger.error('Missing config.ini file with login data (tried to find {})'.format(configfile))
+            logging.error('Missing config.ini file with login data [looking for {}]'.format(configfile))
             sys.exit(1)
+
+    def prepareSession(self):
+        conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
+        self.config = self.get_config(conf_file)
+        defaults = self.config['DEFAULT']
+        username = defaults['username']
+        password = defaults['password']
+        site_url = defaults['site_url']
+        self.siteUrl = site_url
+        self.session = requests.Session()
+        self.session.auth = (username, password)
+        self.cache_expire = defaults['cache_expire']
+        self.cache_file = defaults['cache_file']
+        # self.session.headers.update({'x-test': 'true'})
+        self.session.headers.update({'Origin': site_url})
 
 
     def prepareCache(self, CACHE_PATH):
