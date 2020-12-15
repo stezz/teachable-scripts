@@ -1,4 +1,3 @@
-from teachable.api import TeachableAPI
 from teachable.course import Course
 
 class School:

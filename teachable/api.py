@@ -6,7 +6,8 @@ import os.path
 import time
 import configparser as cfgp
 import logging
-import School, Course, User
+from teachable.school import School
+from teachable.user import User
 import re
 
 
@@ -63,10 +64,11 @@ class TeachableAPI:
             self.logger.error('{} is not a valid email'.format(email))
         return check
 
-    def prepareSession(self, configfile):
-        config = self.get_config(configfile)
-        if config:
-            defaults = config['DEFAULT']
+    def prepareSession(self):
+        conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
+        self.config = self.get_config(conf_file)
+        if self.config:
+            defaults = self.config['DEFAULT']
             username = defaults['username']
             password = defaults['password']
             site_url = defaults['site_url']
@@ -221,7 +223,7 @@ class TeachableAPI:
 
     def addUserToSchool(self, userdict, courseId):
         usersJsonArray =[]
-        if self.check_email(userRow['email']):
+        if self.check_email(userdict['email']):
             userJson = {
                 "email":userdict['email'],
                 "name":userdict['fullname'],
