@@ -16,6 +16,8 @@ class User:
         self._id = None
         self._reportCard = None
         self._exists = None
+        self._notified = None
+        
 
 
 
@@ -41,6 +43,13 @@ class User:
             # on the server side
             self._name = name
         return self._name
+
+    @property
+    def notified(self):
+        # notified getter property
+        if not self._notified:
+            self._notified = self.api._get_last_notif(self.email)
+        return self._notified
 
 #    @property
 #    def email(self):
@@ -81,7 +90,7 @@ class User:
                 pass
                 #self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))
         return self._info
-
+    
     def create(self, courseId=None):
         '''Create the user on the server side, if the user doesn't exist and it
         has valid email '''

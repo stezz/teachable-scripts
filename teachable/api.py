@@ -46,7 +46,12 @@ class TeachableAPI:
 
     def __del__(self):
         if self.cachedData:
+            self.cachedData.sync()
             self.cachedData.close()
+        if self.notif_status:
+            self.notif_status.sync()
+            self.notif_status.close()
+
 
     def get_config(self, configfile):
         """Gets config options"""
@@ -72,6 +77,7 @@ class TeachableAPI:
             username = defaults['username']
             password = defaults['password']
             site_url = defaults['site_url']
+            notifications_db = defaults['notifications_db']
             self.siteUrl = site_url
             self.email_regex = re.compile(defaults['email_regex'])
             self.session = requests.Session()
@@ -81,6 +87,7 @@ class TeachableAPI:
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': site_url})
             self._school = None
+            self.notif_status = shelve.open(notifications_db)
         else:
             sys.exit(1)
 
@@ -170,6 +177,16 @@ class TeachableAPI:
             return None
         else:
             return [User.User(self, user['email']) for user in userList]
+
+    def _get_last_notif(self, email):
+        """Returns the notification status dict"""
+        try:
+            notified = self.notif_status[email]
+            logger.debug('{} was sent a notification last time on {}'.format(user_mail, notified))
+        except KeyError:
+            logger.debug('{} was never sent a notification'.format(user_mail))
+            notified = datetime.date(1970, 1, 1)
+        return notified
 
     def findCourses(self, course):
         '''Searches for courses containing the specific text'''

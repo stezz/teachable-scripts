@@ -42,15 +42,8 @@ def parse_arguments():
     arguments = parser.parse_args()
     return arguments
 
-def get_last_notif(user_mail, notif_status):
-    """Returns the notification status dict"""
-    try:
-        notified = notif_status[user_mail]
-        logger.debug('{} was sent a notification last time on {}'.format(user_mail, notified))
-    except KeyError:
-        logger.debug('{} was never sent a notification'.format(user_mail))
-        notified = datetime.date(1970, 1, 1)
-    return notified
+
+
 
 
 logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
@@ -68,16 +61,14 @@ def remind_app(args):
     smtp_port = defaults['smtp_port']
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
-    notifications_db = defaults['notifications_db']
     templates_dir = os.path.join(sys.prefix, defaults['templates_dir'])
 
     now = datetime.datetime.now()
     logger.info('Connecting to server...')
-    server_str = smtp_server+':'+str(smtp_port)
+    server_str = smtp_server + ':' + str(smtp_port)
     server = EmailConnection(server_str, smtp_user, smtp_pwd)
     # notif_status is a dictionary that support several kind of notification
     # types and we store it in a file that is defined in the config
-    notif_status = shelve.open(notifications_db)
 
     today = datetime.date.today()
     logging.debug('This is just for checking the log levels')
@@ -93,8 +84,7 @@ def remind_app(args):
             # First send a reminder to all that need it
             for user_mail in users_mails:
                 user = User(api, user_mail)
-                notified = get_last_notif(user_mail, notif_status)
-                since_last_notif = (today - notified).days
+                since_last_notif = (today - user.notified).days
                 summary_stats = user.getSummaryStats(school, int(config[section]['course_id']))
                 # Saves the overall stats separately
                 data += summary_stats
@@ -130,11 +120,11 @@ def remind_app(args):
                             if args.dryrun is not True:
                                 logger.info('Sending mail to {}'.format(to_addr))
                                 server.send(mail, bcc=smtp_user)
-                                notif_status[user_mail] = today
+                                api.notif_status[user_mail] = today
                             else:
                                 logger.info('[DRYRUN] Not sending email to {}'.format(to_addr))
                     else:
-                        logger.info('No reminder for '+to_addr)
+                        logger.info('No reminder for ' + to_addr)
             if data:
                 # Now send the overall stats to the specified contact person
                 headers = ['User', 'Email', 'Course', 'Updated at',
@@ -168,9 +158,8 @@ def remind_app(args):
                 subject = 'Weekly report for {course} course'.format(course=course)
                 message = render_template(os.path.join(templates_dir, 'weekly_report.html'),
                                           msg_dict).encode('utf-8')
-                notified = get_last_notif(email_addr, notif_status)
-                since_last_notif = (today - notified).days
-                logger.info('Preparing the message for '+to_addr)
+                since_last_notif = (today - api._get_last_notif(email_addr)).days
+                logger.info('Preparing the message for ' + to_addr)
                 print(message)
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                              message_type='html', subject=subject, message=message,
@@ -178,11 +167,11 @@ def remind_app(args):
                 if args.dryrun is not True and since_last_notif >= notif_freq:
                     logger.info('Sending...')
                     server.send(mail, bcc=smtp_user)
-                    notif_status[email_addr] = today
+                    api.notif_status[email_addr] = today
 
     server.close()
-    notif_status.sync()
-    notif_status.close()
+    api.notif_status.sync()
+
 
 def main():
     args = parse_arguments()
