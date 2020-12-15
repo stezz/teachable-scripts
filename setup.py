@@ -56,7 +56,10 @@ setup(
     ],  # Optional
     extras_require={"dev": []},  # Optional
     dependency_links=[],
-    data_files=[("etc", ["etc/config_example.ini", "etc/logconf.ini"])],  # Optional
+    data_files=[("etc", ["etc/config_example.ini", "etc/logconf.ini"]),
+                ("templates", ["templates/email_inactive.txt",
+                               "templates/email_notstarted.txt",
+                               "templates/weekly_report.html"])],
     entry_points={"console_scripts": ["remind=scripts.remind:main"]},  # Optional
     #scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional

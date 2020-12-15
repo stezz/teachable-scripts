@@ -25,7 +25,7 @@ def render_template(template, vardict):
         sys.exit()
 
     import jinja2
-    templateLoader = jinja2.FileSystemLoader(searchpath=".")
+    templateLoader = jinja2.FileSystemLoader(searchpath='/')
     templateEnv = jinja2.Environment(loader=templateLoader)
     templ = templateEnv.get_template(template)
     return templ.render(vardict)

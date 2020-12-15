@@ -69,7 +69,7 @@ def remind_app(args):
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
     notifications_db = defaults['notifications_db']
-    templates_dir = defaults['templates_dir']
+    templates_dir = os.path.join(sys.prefix, defaults['templates_dir'])
 
     now = datetime.datetime.now()
     logger.info('Connecting to server...')
@@ -116,23 +116,29 @@ def remind_app(args):
                         warn_students += summary_stats
                     if completed > 0 and inactive:
                         subject = 'Don\'t forget the {course} course'.format(course=course)
-                        message = render_template(os.path.join(templates_dir, 'email_inactive.txt'), msg_dict)
+                        message = render_template(os.path.join(templates_dir, 'email_inactive.txt'),
+                                                  msg_dict).encode('utf-8')
                     elif not_started:
                         subject = 'Don\'t forget the {course} course'.format(course=course)
-                        message = render_template(os.path.join(templates_dir, 'email_notstarted.txt'), msg_dict)
+                        message = render_template(os.path.join(templates_dir, 'email_notstarted.txt'),
+                                                  msg_dict).encode('utf-8')
                     if message:
-                        logger.info('Preparing the message for '+to_addr)
+                        print(message)
                         mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                                      subject=subject, message=message)
-                        if args.dryrun is not True and since_last_notif >= notif_freq:
-                            logger.info('Sending...')
-                            server.send(mail, bcc=smtp_user)
-                            notif_status[user_mail] = today
+                        if since_last_notif >= notif_freq:
+                            if args.dryrun is not True:
+                                logger.info('Sending mail to {}'.format(to_addr))
+                                server.send(mail, bcc=smtp_user)
+                                notif_status[user_mail] = today
+                            else:
+                                logger.info('[DRYRUN] Not sending email to {}'.format(to_addr))
                     else:
                         logger.info('No reminder for '+to_addr)
             if data:
                 # Now send the overall stats to the specified contact person
-                headers = ['User', 'Email', 'Course', 'Updated at', 'Completed (%)', 'Days since last lesson']
+                headers = ['User', 'Email', 'Course', 'Updated at',
+                           'Completed (%)', 'Days since last lesson']
                 writer = ptw.ExcelXlsxTableWriter()
                 # Because honestly MS Gothic sucks as a font
                 writer.format_table['cell']['font_name'] = 'Calibri'
@@ -160,10 +166,12 @@ def remind_app(args):
                 msg_dict = {'firstname': firstname, 'course': course,
                             'name_from': smtp_from, 'warn_text': warn_text}
                 subject = 'Weekly report for {course} course'.format(course=course)
-                message = render_template(os.path.join(templates_dir, 'weekly_report.html'), msg_dict)
+                message = render_template(os.path.join(templates_dir, 'weekly_report.html'),
+                                          msg_dict).encode('utf-8')
                 notified = get_last_notif(email_addr, notif_status)
                 since_last_notif = (today - notified).days
                 logger.info('Preparing the message for '+to_addr)
+                print(message)
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                              message_type='html', subject=subject, message=message,
                              attachments=[ofile])
