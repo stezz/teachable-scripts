@@ -17,7 +17,7 @@ The website is done using Angular, and needs some api urls to load the content, 
 Please take that into consideration before using this project and don't come to me to ask for repairs afterwards ;)** 
 
 ## Install and Config
-This script has been tested with python 3.8
+This script has been tested with python 3.9
 
 The list of requirements can be found in the Pipfile and you can install them simply by issuing 
 

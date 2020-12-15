@@ -3,6 +3,7 @@ from operator import itemgetter
 import sys
 import time
 import datetime
+import logging
 
 class User:
     def __init__(self, teachableAPI, email):
@@ -10,8 +11,8 @@ class User:
         email = email.strip()
         userData = self.teachableAPI.findUser(email)
         if not userData:
-            print('There is no user with that email')
-            sys.exit(1)
+            logging.info('There is no user with email <{}>'.format(email))
+            #sys.exit(1)
         else:
             self.email = email
             self.name = userData.get('name').strip()

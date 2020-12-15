@@ -58,6 +58,7 @@ setup(
     dependency_links=[],
     data_files=[("etc", ["etc/config_example.ini", "etc/logconf.ini"])],  # Optional
     entry_points={"console_scripts": ["remind=scripts.remind:main"]},  # Optional
+    #scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional
         "Bug Reports": "https://github.com/stezz/teachable-scripts/issues",
 #        "Funding": "https://donate.pypi.org",
