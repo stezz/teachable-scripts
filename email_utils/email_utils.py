@@ -6,6 +6,7 @@
 # License: GPL <http://www.gnu.org/copyleft/gpl.html>
 
 import os
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
