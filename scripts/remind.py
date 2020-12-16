@@ -4,7 +4,6 @@ import datetime
 import logging
 import logging.config
 import os.path
-import shelve
 import sys
 from email.utils import formataddr
 
@@ -41,9 +40,6 @@ def parse_arguments():
 
     arguments = parser.parse_args()
     return arguments
-
-
-
 
 
 logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))

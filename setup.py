@@ -21,7 +21,6 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-
 setup(
     name="teachable-school-manager",  # Required
     version="1.0.0",  # Required
@@ -61,11 +60,11 @@ setup(
                                "templates/email_notstarted.txt",
                                "templates/weekly_report.html"])],
     entry_points={"console_scripts": ["remind=scripts.remind:main"]},  # Optional
-    #scripts=["scripts/remind.py"],  # Optional
+    # scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional
         "Bug Reports": "https://github.com/stezz/teachable-scripts/issues",
-#        "Funding": "https://donate.pypi.org",
-#        "Say Thanks!": "http://saythanks.io/to/example",
+        #        "Funding": "https://donate.pypi.org",
+        #        "Say Thanks!": "http://saythanks.io/to/example",
         "Source": "https://github.com/stezz/teachable-scripts/",
     },
 )

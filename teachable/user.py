@@ -107,15 +107,15 @@ class User:
             new = {'message': '{} is not a valid email address'.format(self.email)}
         return new
 
-    def get_summary_stats(self, school):
+    def get_summary_stats(self, school, course_id=0):
         """Returns a list of lists with a summary stat for the specific user"""
         stats = []
         now = datetime.datetime.today()
         for (key, courseData) in self.reportcard.items():
             if key != 'meta':
-                course_id = courseData.get('course_id')
-                if ((course_id != 0) and course_id == course_id) or course_id == 0:
-                    course = school.getCourseWithId(course_id)
+                current_course_id = courseData.get('course_id')
+                if ((course_id != 0) and current_course_id == course_id) or course_id == 0:
+                    course = school.get_course_with_id(course_id)
                     percentage = courseData.get('percent_complete')
                     update_time = datetime.datetime.strptime(courseData.get('updated_at'), '%Y-%m-%dT%H:%M:%SZ')
                     days_since_last = (now - update_time).days
@@ -172,7 +172,7 @@ class User:
             completed_date = datetime.datetime.strptime(lectureProgress.get('completed_at'), '%Y-%m-%dT%H:%M:%SZ')
             course_id = lectureProgress.get('course_id')
             lecture_id = lectureProgress.get('lecture_id')
-            course = school.getCourseWithId(course_id)
+            course = school.get_course_with_id(course_id)
             lecture = course.getLectureWithId(lecture_id)
             str_cdate = completed_date.strftime("%Y-%m-%d %H:%M:%S")
             data.append([self.name, self.email, str_cdate, course.name,

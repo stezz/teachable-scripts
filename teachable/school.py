@@ -1,5 +1,6 @@
 from teachable.course import Course
 
+
 class School:
     def __init__(self, api):
         self.api = api
@@ -9,12 +10,13 @@ class School:
         self._name = None
         self._users = None
 
-    def getCourseList(self):
-        rawCourseList = self.api.get_course_list()
-        courseList = []
-        for courseData in rawCourseList:
-            courseList.append(Course(self.api,courseData))
-        return courseList
+    def get_course_list(self):
+        raw_course_list = self.api.get_course_list()
+        course_list = []
+        for courseData in raw_course_list:
+            course_list.append(Course(self.api, courseData))
+        return course_list
+
     @property
     def users(self):
         if not self._users:
@@ -42,14 +44,13 @@ class School:
     @property
     def courses(self):
         if not self._courses:
-            rawCourseList = self.api.get_course_list()
+            raw_course_list = self.api.get_course_list()
             self._courses = []
-            for courseData in rawCourseList:
-                self._courses.append(Course(self.api,courseData))
+            for courseData in raw_course_list:
+                self._courses.append(Course(self.api, courseData))
         return self._courses
 
-    def getCourseWithId(self,courseId):
-        for course in self.getCourseList():
-            if course.id == courseId:
+    def get_course_with_id(self, course_id):
+        for course in self.get_course_list():
+            if course.id == course_id:
                 return course
-

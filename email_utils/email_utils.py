@@ -7,29 +7,26 @@
 
 import os
 import sys
+from email.encoders import encode_base64
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email.header import Header
-from email.utils import formataddr
 from mimetypes import guess_type
-from email.encoders import encode_base64
-from getpass import getpass
 from smtplib import SMTP
 
+
 def render_template(template, vardict):
-    ''' renders a Jinja template into HTML '''
+    """ renders a Jinja template into HTML """
     # check if template exists
     if not os.path.exists(template):
         print('No template file present: %s' % template)
         sys.exit()
 
     import jinja2
-    templateLoader = jinja2.FileSystemLoader(searchpath='/')
-    templateEnv = jinja2.Environment(loader=templateLoader)
-    templ = templateEnv.get_template(template)
+    template_loader = jinja2.FileSystemLoader(searchpath='/')
+    template_env = jinja2.Environment(loader=template_loader)
+    templ = template_env.get_template(template)
     return templ.render(vardict)
-
 
 
 def get_email(email):
@@ -37,6 +34,7 @@ def get_email(email):
         data = email.split('<')
         email = data[1].split('>')[0].strip()
     return email.strip()
+
 
 class Email(object):
     def __init__(self, from_, to, subject, message, message_type='plain',
@@ -78,10 +76,10 @@ class EmailConnection(object):
             self.port = 25
         self.username = username
         self.password = password
+        self.connection = SMTP(self.server, self.port)
         self.connect()
 
     def connect(self):
-        self.connection = SMTP(self.server, self.port)
         self.connection.ehlo()
         self.connection.starttls()
         self.connection.ehlo()
