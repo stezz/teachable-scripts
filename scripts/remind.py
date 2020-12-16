@@ -100,15 +100,14 @@ def remind_app(args):
                     if completed > 0 and inactive:
                         subject = 'Don\'t forget the {course} course'.format(course=course)
                         message = render_template(os.path.join(templates_dir, 'email_inactive.txt'),
-                                                  msg_dict).encode('utf-8')
+                                                  msg_dict)
                     elif not_started:
                         subject = 'Don\'t forget the {course} course'.format(course=course)
                         message = render_template(os.path.join(templates_dir, 'email_notstarted.txt'),
-                                                  msg_dict).encode('utf-8')
+                                                  msg_dict)
                     if message:
-                        print(message)
                         mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
-                                     subject=subject, message=message)
+                                     subject=subject, message=message, message_encoding="utf-8")
                         if since_last_notif >= notif_freq:
                             if args.dryrun is not True:
                                 logger.info('Sending mail to {}'.format(to_addr))
@@ -150,13 +149,12 @@ def remind_app(args):
                             'name_from': smtp_from, 'warn_text': warn_text}
                 subject = 'Weekly report for {course} course'.format(course=course)
                 message = render_template(os.path.join(templates_dir, 'weekly_report.html'),
-                                          msg_dict).encode('utf-8')
+                                          msg_dict)
                 since_last_notif = (today - api._get_last_notif(email_addr)).days
                 logger.info('Preparing the message for ' + to_addr)
-                print(message)
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                              message_type='html', subject=subject, message=message,
-                             attachments=[ofile])
+                             attachments=[ofile], message_encoding="utf-8")
                 if args.dryrun is not True and since_last_notif >= notif_freq:
                     logger.info('Sending...')
                     server.send(mail, bcc=smtp_user)
