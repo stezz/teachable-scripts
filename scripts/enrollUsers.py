@@ -36,10 +36,10 @@ for user in records:
     if user['email'] != '':
         if api.check_email(user['email']):
             api.usecache = False
-            teachable_user = api.findUser(user['email'])
+            teachable_user = api.find_user(user['email'])
             api.usecache = True
             if teachable_user != None:
-                resp = api.enrollUserToCourse(teachable_user['id'], courseId)
+                resp = api.enroll_user_to_course(teachable_user['id'], courseId)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])
                 else:
@@ -47,7 +47,7 @@ for user in records:
             else:
                 logger.info('User {} doesn\'t exist. Creating and registering'.format(user['fullname']))
                 # Add the user to the school and register to the course otherwise
-                resp = api.addUserToSchool(user, courseId)
+                resp = api.add_user_to_school(user, courseId)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])
         else:

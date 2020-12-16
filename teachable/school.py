@@ -10,7 +10,7 @@ class School:
         self._users = None
 
     def getCourseList(self):
-        rawCourseList = self.api.getCourseList()
+        rawCourseList = self.api.get_course_list()
         courseList = []
         for courseData in rawCourseList:
             courseList.append(Course(self.api,courseData))
@@ -18,7 +18,7 @@ class School:
     @property
     def users(self):
         if not self._users:
-            self._users = self.api._getAllUsers()
+            self._users = self.api._get_all_users()
         return self._users
 
     @property
@@ -36,13 +36,13 @@ class School:
     @property
     def info(self):
         if not self._info:
-            self._info = self.api.getSchoolInfo()
+            self._info = self.api.get_school_info()
         return self._info
 
     @property
     def courses(self):
         if not self._courses:
-            rawCourseList = self.api.getCourseList()
+            rawCourseList = self.api.get_course_list()
             self._courses = []
             for courseData in rawCourseList:
                 self._courses.append(Course(self.api,courseData))

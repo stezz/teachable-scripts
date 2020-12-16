@@ -9,17 +9,17 @@ class Course:
         self._lectures = None
 
     def getPrice(self):
-        price = self.teachableAPI.getCoursePrice(self.id)
+        price = self.teachableAPI.get_course_price(self.id)
         return price
 
     @property
     def price(self):
         if not self._price:
-            self._price = self.teachableAPI.getCoursePrice(self.id)
+            self._price = self.teachableAPI.get_course_price(self.id)
         return self._price
 
     def getSections(self):
-        sections = self.teachableAPI.getCourseSections(self.id)
+        sections = self.teachableAPI.get_course_sections(self.id)
         sectionslist = []
         for sectionJson in sections:
             sectionslist.append(CourseSection(sectionJson))
@@ -28,7 +28,7 @@ class Course:
     @property
     def sections(self):
         if not self._sections:
-            sections = self.teachableAPI.getCourseSections(self.id)
+            sections = self.teachableAPI.get_course_sections(self.id)
             self._sections = []
             for sectionJson in sections:
                 self._sections.append(CourseSection(sectionJson))

@@ -1,3 +1,5 @@
+import datetime
+
 import requests
 import json
 import sys
@@ -27,22 +29,37 @@ class TeachableAPI:
     URL_IMPORT_USERS = '/api/v1/import/users'
     URL_ENROLLMENTS_USER = '/api/v1/users/USER_ID/enrollments'
     URL_LEADERBOARD = '/api/v1/courses/COURSE_ID/leaderboard.csv?page=1&per=PER_PAGE'
-    URL_COURSE_PROGRESS = '/api/v1/course_progresses?user_id=USER_ID' # no idea what does it do
-    URL_PAGES_CERTIFICATE = '/api/v1/pages?feature=certificate' # no idea what does it do
-    URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID' #
-#    -data-binary '{"course_id":int,"user_id":int}' \
+    URL_COURSE_PROGRESS = '/api/v1/course_progresses?user_id=USER_ID'  # no idea what does it do
+    URL_PAGES_CERTIFICATE = '/api/v1/pages?feature=certificate'  # no idea what does it do
+    URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID'  #
+    #    -data-binary '{"course_id":int,"user_id":int}' \
     URL_ENROLLED_USER = '/admin/users/USER_ID/enrolled'
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.logger = logging.getLogger('TeachableAPI')
-        self.prepareSession()
-        self.expire_cache(os.path.join(dir_path, self.cache_file))
-        self.prepareCache(os.path.join(dir_path, self.cache_file))
         self.usecache = True
         self._school = None
         self._courses = None
+        conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
+        self.config = self.get_config(conf_file)
+        if self.config:
+            defaults = self.config['DEFAULT']
+            self.notif_status = shelve.open(defaults['notifications_db'])
+            self.site_url = defaults['site_url']
+            self.email_regex = re.compile(defaults['email_regex'])
+            self.session = requests.Session()
+            self.session.auth = (defaults['username'], defaults['password'])
+            self.cache_expire = defaults['cache_expire']
+            self.cache_file = defaults['cache_file']
+            # self.session.headers.update({'x-test': 'true'})
+            self.session.headers.update({'Origin': self.site_url})
+            self.expire_cache(os.path.join(dir_path, self.cache_file))
+            self.prepare_cache(os.path.join(dir_path, self.cache_file))
+
+        else:
+            sys.exit(1)
 
     def __del__(self):
         if self.cachedData:
@@ -51,7 +68,6 @@ class TeachableAPI:
         if self.notif_status:
             self.notif_status.sync()
             self.notif_status.close()
-
 
     def get_config(self, configfile):
         """Gets config options"""
@@ -69,47 +85,24 @@ class TeachableAPI:
             self.logger.error('{} is not a valid email'.format(email))
         return check
 
-    def prepareSession(self):
-        conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
-        self.config = self.get_config(conf_file)
-        if self.config:
-            defaults = self.config['DEFAULT']
-            username = defaults['username']
-            password = defaults['password']
-            site_url = defaults['site_url']
-            notifications_db = defaults['notifications_db']
-            self.siteUrl = site_url
-            self.email_regex = re.compile(defaults['email_regex'])
-            self.session = requests.Session()
-            self.session.auth = (username, password)
-            self.cache_expire = defaults['cache_expire']
-            self.cache_file = defaults['cache_file']
-            # self.session.headers.update({'x-test': 'true'})
-            self.session.headers.update({'Origin': site_url})
-            self._school = None
-            self.notif_status = shelve.open(notifications_db)
-        else:
-            sys.exit(1)
+    def prepare_cache(self, cache_path):
+        self.logger.debug('Using cache {}'.format(cache_path))
+        self.cachedData = shelve.open(cache_path)
 
-
-    def prepareCache(self, CACHE_PATH):
-        self.logger.debug('Using cache {}'.format(CACHE_PATH))
-        self.cachedData = shelve.open(CACHE_PATH)
-
-
-    def expire_cache(self,CACHE_PATH):
-        if os.path.isfile(CACHE_PATH):
-            cache_antiquity = time.time() - os.path.getctime(CACHE_PATH)
-            MAXIMUM_CACHE_DURATION = 60 * 60 * 24 * int(self.cache_expire)  # One day (rate limits
+    def expire_cache(self, cache_path):
+        if os.path.isfile(cache_path):
+            cache_antiquity = time.time() - os.path.getctime(cache_path)
+            maximum_cache_duration = 60 * 60 * 24 * int(self.cache_expire)  # One day (rate limits
             #                                            are not that
             #                                            aggressive I hope)
-            if cache_antiquity > MAXIMUM_CACHE_DURATION:
-                os.remove(CACHE_PATH)
+            if cache_antiquity > maximum_cache_duration:
+                os.remove(cache_path)
                 self.logger.warning('Cache file dumped!')
+
     @property
     def school(self):
         if not self._school:
-            self._school = School.School(self)
+            self._school = School(self)
         return self._school
 
     @property
@@ -118,253 +111,252 @@ class TeachableAPI:
             self._courses = self.school.courses
         return self._courses
 
-    def getLeaderboardCSV(self, course, filename):
-        '''Gets a course JSON dict as input'''
-        PER_PAGE = '100000' # includes in the leaderboard CSV as many as PER_PAGE users
-        courseId = course.get('id')
+    def get_leaderboard_csv(self, course, filename):
+        """Gets a course JSON dict as input"""
+        per_page = '100000'  # includes in the leaderboard CSV as many as PER_PAGE users
+        course_id = course.get('id')
         course_name = course.get('name')
-        path = self.URL_LEADERBOARD.replace('COURSE_ID',str(courseId)).replace('PER_PAGE',str(PER_PAGE))
-        fullUrl = self.siteUrl + path
-        r = self.session.get(fullUrl, allow_redirects=True)
+        path = self.URL_LEADERBOARD.replace('COURSE_ID', str(course_id)).replace('PER_PAGE', str(per_page))
+        full_url = self.siteUrl + path
+        r = self.session.get(full_url, allow_redirects=True)
         if filename == '':
             filename = 'leaderboard_{course}.csv'.format(course=course_name)
         open(filename, 'wb').write(r.content)
 
-    def getUserCoursesReport(self,userId):
-        path = self.URL_COURSE_REPORT.replace('USER_ID',str(userId))
-        return self._getJsonAt(path, True).get('report')
+    def get_user_course_report(self, user_id):
+        path = self.URL_COURSE_REPORT.replace('USER_ID', str(user_id))
+        return self._get_json_at(path).get('report')
 
-    def getCourseSections(self, courseId):
-        url_course_curriculum = self.URL_CURRICULUM.replace('COURSE_ID', str(courseId))
-        return self._getJsonAt(url_course_curriculum).get('lecture_sections')
+    def get_course_sections(self, course_id):
+        url_course_curriculum = self.URL_CURRICULUM.replace('COURSE_ID', str(course_id))
+        return self._get_json_at(url_course_curriculum).get('lecture_sections')
 
-    def getCourseList(self):
-        course_info = self._getJsonAt(self.URL_COURSES)
+    def get_course_list(self):
+        course_info = self._get_json_at(self.URL_COURSES)
         return course_info.get('courses')
 
-    def getSchoolInfo(self):
-        school_info = self._getJsonAt(self.URL_SCHOOL_INFO)
+    def get_school_info(self):
+        school_info = self._get_json_at(self.URL_SCHOOL_INFO)
         return school_info
 
-    def findUser(self, email):
-        '''Searches for a specific user, the API uses the same endpoint, for
-        one or many'''
-        userList = self._getJsonAt(self.URL_FIND_USER + email).get('users')
-        if len(userList) == 0:
+    def find_user(self, email):
+        """Searches for a specific user, the API uses the same endpoint, for
+        one or many"""
+        user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
+        if len(user_list) == 0:
             return None
         else:
-            return userList[0]
+            return user_list[0]
 
-    def findMultiUser(self, email):
-        '''Searches for multiple users, the API uses the same endpoint for one
-        or many'''
-        userList = self._getJsonAt(self.URL_FIND_USER + email).get('users')
-        if len(userList) == 0:
+    def find_many_users(self, email):
+        """Searches for multiple users, the API uses the same endpoint for one
+        or many"""
+        user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
+        if len(user_list) == 0:
             return None
         else:
-            return userList
+            return user_list
 
-    def getAllUsers(self):
-        userList = self._getJsonAt(self.URL_GET_ALL_USERS).get('users')
-        if len(userList) == 0:
+    def get_all_users(self):
+        user_list = self._get_json_at(self.URL_GET_ALL_USERS).get('users')
+        if len(user_list) == 0:
             return None
         else:
-            return userList
+            return user_list
 
-    def _getAllUsers(self):
-        userList = self._getJsonAt(self.URL_GET_ALL_USERS).get('users')
-        if len(userList) == 0:
+    def _get_all_users(self):
+        user_list = self._get_json_at(self.URL_GET_ALL_USERS).get('users')
+        if len(user_list) == 0:
             return None
         else:
-            return [User.User(self, user['email']) for user in userList]
+            return [User(self, user['email']) for user in user_list]
 
     def _get_last_notif(self, email):
         """Returns the notification status dict"""
         try:
             notified = self.notif_status[email]
-            logger.debug('{} was sent a notification last time on {}'.format(user_mail, notified))
+            self.logger.debug('{} was sent a notification last time on {}'.format(email, notified))
         except KeyError:
-            logger.debug('{} was never sent a notification'.format(user_mail))
+            self.logger.debug('{} was never sent a notification'.format(email))
             notified = datetime.date(1970, 1, 1)
         return notified
 
     def _set_last_notif(self, email, newdate):
         self.notif_status[email] = newdate
-        self.api.notif_status.sync()
+        self.notif_status.sync()
 
-    def findCourses(self, course):
-        '''Searches for courses containing the specific text'''
-        courseList = self._getJsonAt(self.URL_FIND_COURSE +
-                     course).get('courses')
-        if len(courseList) == 0:
+    def find_courses(self, course):
+        """Searches for courses containing the specific text"""
+        course_list = self._get_json_at(self.URL_FIND_COURSE +
+                                        course).get('courses')
+        if len(course_list) == 0:
             return None
         else:
-            return courseList
+            return course_list
 
-    def getCoursePrice(self,courseId):
-        products = self.getCourseProducts(courseId)
+    def get_course_price(self, course_id):
+        products = self.get_course_products(course_id)
         if len(products) > 0:
             return products[0].get('price')
         else:
             return 0
 
-    def getCourseProducts(self, courseId):
-        path = self.URL_COURSE_PRODUCTS.replace('COURSE_ID', str(courseId))
-        result = self._getJsonAt(path)
+    def get_course_products(self, course_id):
+        path = self.URL_COURSE_PRODUCTS.replace('COURSE_ID', str(course_id))
+        result = self._get_json_at(path)
         return result.get('products')
 
-    def getUserReportCard(self,userId):
-        '''Gets the full report card fot userId, returning the full list of
-        lessons the user has completed'''
-        path = self.URL_REPORT_CARD.replace('USER_ID',str(userId))
-        return self._getJsonAt(path)
+    def get_user_report_card(self, user_id):
+        """Gets the full report card fot userId, returning the full list of
+        lessons the user has completed"""
+        path = self.URL_REPORT_CARD.replace('USER_ID', str(user_id))
+        return self._get_json_at(path)
 
-    def addUsersToSchool(self, usersArray, courseId):
-        usersJsonArray = []
-        for userRow in usersArray:
+    def add_users_to_school(self, users_array, course_id):
+        users_json_array = []
+        for userRow in users_array:
             if self.check_email(userRow['email']):
-                userJson = {
-                    "email":userRow['email'],
-                    "name":userRow['fullname'],
-                    "password":None,
-                    "role":"student",
-                    "course_id":courseId,
-                    "unsubscribe_from_marketing_emails":'false'
+                user_json = {
+                    "email": userRow['email'],
+                    "name": userRow['fullname'],
+                    "password": None,
+                    "role": "student",
+                    "course_id": course_id,
+                    "unsubscribe_from_marketing_emails": 'false'
                 }
-                usersJsonArray.append(userJson)
+                users_json_array.append(user_json)
         payload = {
-            "user_list" :usersJsonArray,
-            "course_id": courseId,
+            "user_list": users_json_array,
+            "course_id": course_id,
             "coupon_code": None,
             "users_role": "student",
             "author_bio_data": {}
         }
-        resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+        resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def addUserToSchool(self, userdict, courseId):
-        usersJsonArray =[]
+    def add_user_to_school(self, userdict, course_id):
+        users_json_array = []
         if self.check_email(userdict['email']):
-            userJson = {
-                "email":userdict['email'],
-                "name":userdict['fullname'],
-                "password":None,
-                "role":"student",
-                "course_id":courseId,
-                "unsubscribe_from_marketing_emails":'false'
+            user_json = {
+                "email": userdict['email'],
+                "name": userdict['fullname'],
+                "password": None,
+                "role": "student",
+                "course_id": course_id,
+                "unsubscribe_from_marketing_emails": 'false'
             }
-            usersJsonArray.append(userJson)
+            users_json_array.append(user_json)
         payload = {
-            "user_list" :usersJsonArray,
-            "course_id": courseId,
+            "user_list": users_json_array,
+            "course_id": course_id,
             "coupon_code": None,
             "users_role": "student",
             "author_bio_data": {}
         }
-        resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+        resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def _addUserToSchool(self, user, courseId=None):
-        usersJsonArray =[]
+    def _add_user_to_school(self, user, course_id=None):
+        users_json_array = []
         if self.check_email(user.email):
-            userJson = {
-                "email":user.email,
-                "name":user.name,
-                "password":None,
-                "role":"student",
-                "unsubscribe_from_marketing_emails":'false'
+            user_json = {
+                "email": user.email,
+                "name": user.name,
+                "password": None,
+                "role": "student",
+                "unsubscribe_from_marketing_emails": 'false'
             }
-            if courseId:
-                userJson["course_id"] = courseId
-            usersJsonArray.append(userJson)
+            if course_id:
+                user_json["course_id"] = course_id
+            users_json_array.append(user_json)
         payload = {
-            "user_list" :usersJsonArray,
+            "user_list": users_json_array,
             "coupon_code": None,
             "users_role": "student",
             "author_bio_data": {}
         }
-        if courseId:
-           payload["course_id"] = courseId
-        resp = self._postJsonAt(self.URL_IMPORT_USERS, json.dumps(payload))
+        if course_id:
+            payload["course_id"] = course_id
+        resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def enrollUsersToCourse(self, userIdArray, courseId):
+    def enroll_users_to_course(self, user_id_array, course_id):
         responses = []
-        for userRow in userIdArray:
-            response = self.enrollUserToCourse(str(userRow[0]))
+        for userRow in user_id_array:
+            response = self.enroll_user_to_course(str(userRow[0]), course_id)
             responses.append(response)
         return responses
 
-    def enrollUserToCourse(self, userId, courseId):
-        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
-        jsonBody = json.dumps({"course_id": int(courseId)})
-        response = self._postJsonAt(path, jsonBody)
+    def enroll_user_to_course(self, user_id, course_id):
+        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user_id))
+        json_body = json.dumps({"course_id": int(course_id)})
+        response = self._post_json_at(path, json_body)
         # Now refreshing the status in the cache
         self.usecache = False
-        self.getEnrolledCourses(userId)
+        self.get_enrolled_courses(user_id)
         self.usecache = True
         if response:
             return json.loads(response)
         else:
             return response
 
-    def unenrollUserFromCourse(self, userId, courseId):
+    def unenroll_user_from_course(self, user_id, course_id):
         path = self.URL_UNENROLL_USER
-        jsonBody = json.dumps({"course_id":int(courseId),"user_id":int(userId)})
-        response = self._putJsonAt(path,jsonBody)
+        json_body = json.dumps({"course_id": int(course_id), "user_id": int(user_id)})
+        response = self._put_json_at(path, json_body)
         # updating also the cache for the enrolled courses
         self.usecache = False
-        self.getEnrolledCourses(userId)
+        self.get_enrolled_courses(user_id)
         self.usecache = True
         if response:
             return json.loads(response)
         else:
             return response
 
-    def getEnrolledCourses(self, userId):
-        "Gets the courses the user is enrolled in"
-        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(userId))
-        return self._getJsonAt(path).get('enrollments')
-        #return [p['course_id'] for p in response if 'course_id' in p
+    def get_enrolled_courses(self, user_id):
+        """Gets the courses the user is enrolled in"""
+        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user_id))
+        return self._get_json_at(path).get('enrollments')
+        # return [p['course_id'] for p in response if 'course_id' in p
         #        and p['is_active'] == True]
 
+    def check_enrollment_to_course(self, user_id, course_id):
+        """Check is a user is enrolled in a specific course"""
+        courses = self.get_enrolled_courses(user_id)
+        return int(course_id) in [p['course_id'] for p in courses if 'course_id' in p and p['is_active'] is True]
 
-    def checkEnrollmentToCourse(self, userId, courseId):
-        "Check is a user is enrolled in a specific course"
-        courses = self.getEnrolledCourses(userId)
-        return int(courseId) in [p['course_id'] for p in courses if 'course_id' in p and p['is_active'] == True]
-
-    def _getJsonAt(self, path):
+    def _get_json_at(self, path):
         if self.usecache and path in self.cachedData:
             self.logger.info(("Found cached data for " + path))
             return self.cachedData[path]
         else:
-            fullUrl = self.siteUrl + path
-            self.logger.debug(("Downloading data from " + fullUrl))
-            jsonData = self.session.get(fullUrl).json()
-            if jsonData.get('error'):
+            full_url = self.siteUrl + path
+            self.logger.debug(("Downloading data from " + full_url))
+            json_data = self.session.get(full_url).json()
+            if json_data.get('error'):
                 self.logger.error('Check Teachable credentials')
                 sys.exit(1)
             self.logger.debug('Updating cache data for ' + path)
-            self.cachedData[path] = jsonData
-            return jsonData
+            self.cachedData[path] = json_data
+            return json_data
 
-    def _postJsonAt(self, path, jsonBody):
-        fullUrl = self.siteUrl + path
-        self.logger.debug(("Uploading POST data to " + fullUrl))
-        self.logger.debug("JSON Body : " + jsonBody)
-        jsonTxt = json.loads(jsonBody)
+    def _post_json_at(self, path, json_body):
+        full_url = self.siteUrl + path
+        self.logger.debug(("Uploading POST data to " + full_url))
+        self.logger.debug("JSON Body : " + json_body)
+        json_txt = json.loads(json_body)
         self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
-        self.logger.debug((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
-        jsonResponseBody = self.session.post(fullUrl, data=jsonBody)
-        return jsonResponseBody.text
+        self.logger.debug((json.dumps(json_txt, sort_keys=True, indent=4, separators=(',', ': '))))
+        json_response_body = self.session.post(full_url, data=json_body)
+        return json_response_body.text
 
-    def _putJsonAt(self, path, jsonBody):
-        fullUrl = self.siteUrl + path
-        self.logger.debug(("Uploading PUT data to " + fullUrl))
-        self.logger.debug("JSON Body : " + jsonBody)
-        jsonTxt = json.loads(jsonBody)
+    def _put_json_at(self, path, json_body):
+        full_url = self.siteUrl + path
+        self.logger.debug(("Uploading PUT data to " + full_url))
+        self.logger.debug("JSON Body : " + json_body)
+        json_txt = json.loads(json_body)
         self.session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
-        self.logger.debug((json.dumps(jsonTxt, sort_keys=True, indent=4, separators=(',', ': '))))
-        jsonResponseBody = self.session.put(fullUrl, data=jsonBody)
-        return jsonResponseBody.text
+        self.logger.debug((json.dumps(json_txt, sort_keys=True, indent=4, separators=(',', ': '))))
+        json_response_body = self.session.put(full_url, data=json_body)
+        return json_response_body.text

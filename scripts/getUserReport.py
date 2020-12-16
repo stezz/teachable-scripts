@@ -49,18 +49,18 @@ if args.emails:
         users_mails.append(email)
 
 if args.search:
-    users_mails = [x.get('email') for x in api.findMultiUser(args.search)]
+    users_mails = [x.get('email') for x in api.find_many_users(args.search)]
 
 if not users_mails:
-    users_mails = [x.get('email') for x in api.getAllUsers()]
+    users_mails = [x.get('email') for x in api.get_all_users()]
 
 data = []
 for user_mail in users_mails:
     user = User(api, user_mail)
     if args.detailed is True:
-        data += user.getDetailedStats(school)
+        data += user.get_detailed_stats(school)
     else:
-        data += user.getSummaryStats(school, int(args.courseid))
+        data += user.get_summary_stats(school, int(args.courseid))
 
 
 if args.detailed is True:

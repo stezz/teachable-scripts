@@ -77,12 +77,12 @@ def remind_app(args):
             notif_freq = int(config[section]['freq'])
             data = []
             warn_students = []
-            users_mails = [x.get('email') for x in api.findMultiUser(config[section]['emailsearch'])]
+            users_mails = [x.get('email') for x in api.find_many_users(config[section]['emailsearch'])]
             # First send a reminder to all that need it
             for user_mail in users_mails:
                 user = User(api, user_mail)
                 since_last_notif = (today - user.notified).days
-                summary_stats = user.getSummaryStats(school, int(config[section]['course_id']))
+                summary_stats = user.get_summary_stats(school, int(config[section]['course_id']))
                 # Saves the overall stats separately
                 data += summary_stats
                 if summary_stats:
