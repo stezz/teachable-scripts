@@ -67,9 +67,6 @@ def remind_app(args):
     logger.info('Connecting to server...')
     server_str = smtp_server + ':' + str(smtp_port)
     server = EmailConnection(server_str, smtp_user, smtp_pwd)
-    # notif_status is a dictionary that support several kind of notification
-    # types and we store it in a file that is defined in the config
-
     today = datetime.date.today()
     logging.debug('This is just for checking the log levels')
 
@@ -120,7 +117,7 @@ def remind_app(args):
                             if args.dryrun is not True:
                                 logger.info('Sending mail to {}'.format(to_addr))
                                 server.send(mail, bcc=smtp_user)
-                                api.notif_status[user_mail] = today
+                                user.notified = today
                             else:
                                 logger.info('[DRYRUN] Not sending email to {}'.format(to_addr))
                     else:
@@ -167,10 +164,9 @@ def remind_app(args):
                 if args.dryrun is not True and since_last_notif >= notif_freq:
                     logger.info('Sending...')
                     server.send(mail, bcc=smtp_user)
-                    api.notif_status[email_addr] = today
+                    api._set_last_notif(email_addr, today)
 
     server.close()
-    api.notif_status.sync()
 
 
 def main():

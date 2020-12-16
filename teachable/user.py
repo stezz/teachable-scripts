@@ -51,6 +51,13 @@ class User:
             self._notified = self.api._get_last_notif(self.email)
         return self._notified
 
+    @notified.setter
+    def notified(self, newdate):
+        #notified setter property
+        self.api._set_last_notif(self.email, newdate)
+        self._notified = newdate
+        return self._notified
+
 #    @property
 #    def email(self):
 #        # email getter property

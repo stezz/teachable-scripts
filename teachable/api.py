@@ -188,6 +188,10 @@ class TeachableAPI:
             notified = datetime.date(1970, 1, 1)
         return notified
 
+    def _set_last_notif(self, email, newdate):
+        self.notif_status[email] = newdate
+        self.api.notif_status.sync()
+
     def findCourses(self, course):
         '''Searches for courses containing the specific text'''
         courseList = self._getJsonAt(self.URL_FIND_COURSE +
