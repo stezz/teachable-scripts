@@ -14,9 +14,6 @@ import re
 
 
 class TeachableAPI:
-    siteUrl = None
-    session = None
-    cachedData = None
     URL_COURSES = '/api/v1/courses'
     URL_GET_ALL_USERS = '/api/v1/users'
     URL_SCHOOL_INFO = '/api/v1/school'
@@ -42,6 +39,9 @@ class TeachableAPI:
         self.usecache = True
         self._school = None
         self._courses = None
+        self.site_url = None
+        self.session = None
+        self.cached_data = None
         conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
         self.config = self.get_config(conf_file)
         if self.config:
@@ -62,9 +62,9 @@ class TeachableAPI:
             sys.exit(1)
 
     def __del__(self):
-        if self.cachedData:
-            self.cachedData.sync()
-            self.cachedData.close()
+        if self.cached_data:
+            self.cached_data.sync()
+            self.cached_data.close()
         if self.notif_status:
             self.notif_status.sync()
             self.notif_status.close()
@@ -87,7 +87,7 @@ class TeachableAPI:
 
     def prepare_cache(self, cache_path):
         self.logger.debug('Using cache {}'.format(cache_path))
-        self.cachedData = shelve.open(cache_path)
+        self.cached_data = shelve.open(cache_path)
 
     def expire_cache(self, cache_path):
         if os.path.isfile(cache_path):
@@ -117,7 +117,7 @@ class TeachableAPI:
         course_id = course.get('id')
         course_name = course.get('name')
         path = self.URL_LEADERBOARD.replace('COURSE_ID', str(course_id)).replace('PER_PAGE', str(per_page))
-        full_url = self.siteUrl + path
+        full_url = self.site_url + path
         r = self.session.get(full_url, allow_redirects=True)
         if filename == '':
             filename = 'leaderboard_{course}.csv'.format(course=course_name)
@@ -327,22 +327,22 @@ class TeachableAPI:
         return int(course_id) in [p['course_id'] for p in courses if 'course_id' in p and p['is_active'] is True]
 
     def _get_json_at(self, path):
-        if self.usecache and path in self.cachedData:
+        if self.usecache and path in self.cached_data:
             self.logger.info(("Found cached data for " + path))
-            return self.cachedData[path]
+            return self.cached_data[path]
         else:
-            full_url = self.siteUrl + path
+            full_url = self.site_url + path
             self.logger.debug(("Downloading data from " + full_url))
             json_data = self.session.get(full_url).json()
             if json_data.get('error'):
                 self.logger.error('Check Teachable credentials')
                 sys.exit(1)
             self.logger.debug('Updating cache data for ' + path)
-            self.cachedData[path] = json_data
+            self.cached_data[path] = json_data
             return json_data
 
     def _post_json_at(self, path, json_body):
-        full_url = self.siteUrl + path
+        full_url = self.site_url + path
         self.logger.debug(("Uploading POST data to " + full_url))
         self.logger.debug("JSON Body : " + json_body)
         json_txt = json.loads(json_body)
@@ -352,7 +352,7 @@ class TeachableAPI:
         return json_response_body.text
 
     def _put_json_at(self, path, json_body):
-        full_url = self.siteUrl + path
+        full_url = self.site_url + path
         self.logger.debug(("Uploading PUT data to " + full_url))
         self.logger.debug("JSON Body : " + json_body)
         json_txt = json.loads(json_body)
