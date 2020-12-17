@@ -206,3 +206,12 @@ class User:
 
     def __repr__(self):
         return '<User({})>'.format(self.email)
+
+    def enroll(self, course_id):
+        # TODO: use self.api.enroll_user_to_course(self.id, course_id)
+        pass
+
+    def unenroll(self, course_id):
+        # TODO: use self.api.unenroll_user_from_course(self.id, course_id)
+        pass
+

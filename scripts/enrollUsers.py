@@ -47,6 +47,7 @@ for user in records:
             else:
                 logger.info('User {} doesn\'t exist. Creating and registering'.format(user['fullname']))
                 # Add the user to the school and register to the course otherwise
+                # TODO: we should use here user.create(courseId)
                 resp = api.add_user_to_school(user, courseId)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])

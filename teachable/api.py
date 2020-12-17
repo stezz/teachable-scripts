@@ -6,7 +6,7 @@ import sys
 import shelve
 import os.path
 import time
-import configparser as cfgp
+from configparser import ConfigParser
 import logging
 from teachable.school import School
 from teachable.user import User
@@ -75,7 +75,7 @@ class TeachableAPI:
     def get_config(self, configfile):
         """Gets config options"""
         if os.path.exists(configfile):
-            config = cfgp.ConfigParser()
+            config = ConfigParser()
             config.read(configfile)
         else:
             self.logger.error('Missing config.ini file with login data (tried to find {})'.format(configfile))
@@ -211,6 +211,7 @@ class TeachableAPI:
         self.notif_status.sync()
 
     def find_courses(self, course):
+        # TODO: Return Course Object #
         """Searches for courses containing the specific text"""
         course_list = self._get_json_at(self.URL_FIND_COURSE +
                                         course).get('courses')
@@ -283,6 +284,7 @@ class TeachableAPI:
         return json.loads(resp)
 
     def _add_user_to_school(self, user, course_id=None):
+        # TODO: we might want to pass here also a Course object as input for better style
         users_json_array = []
         if self.check_email(user.email):
             user_json = {
@@ -307,6 +309,7 @@ class TeachableAPI:
         return json.loads(resp)
 
     def enroll_users_to_course(self, user_id_array, course_id):
+        # TODO: we might want to pass here User and Course objects as input?
         responses = []
         for userRow in user_id_array:
             response = self.enroll_user_to_course(str(userRow[0]), course_id)
@@ -314,6 +317,7 @@ class TeachableAPI:
         return responses
 
     def enroll_user_to_course(self, user_id, course_id):
+        # TODO: we might want to pass here User and Course objects as input?
         path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user_id))
         json_body = json.dumps({"course_id": int(course_id)})
         response = self._post_json_at(path, json_body)
@@ -340,6 +344,7 @@ class TeachableAPI:
             return response
 
     def get_enrolled_courses(self, user_id):
+        # TODO: Return Course Object #
         """Gets the courses the user is enrolled in"""
         path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user_id))
         return self._get_json_at(path).get('enrollments')
