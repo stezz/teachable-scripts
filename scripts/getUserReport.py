@@ -3,7 +3,6 @@ import argparse
 import string
 from User import User
 from TeachableAPI import TeachableAPI
-from School import School
 import pytablewriter as ptw
 
 parser = argparse.ArgumentParser(description='''Get your Teachable students
@@ -42,25 +41,24 @@ args = parser.parse_args()
 
 
 api = TeachableAPI()
-school = School(api)
 users_mails = []
 if args.emails:
     for email in args.emails:
         users_mails.append(email)
 
 if args.search:
-    users_mails = [x.get('email') for x in api.findMultiUser(args.search)]
+    users_mails = [x.get('email') for x in api.find_many_users(args.search)]
 
 if not users_mails:
-    users_mails = [x.get('email') for x in api.getAllUsers()]
+    users_mails = [x.email for x in api.school.users]
 
 data = []
 for user_mail in users_mails:
     user = User(api, user_mail)
     if args.detailed is True:
-        data += user.getDetailedStats(school)
+        data += user.get_detailed_stats()
     else:
-        data += user.getSummaryStats(school, int(args.courseid))
+        data += user.get_summary_stats(int(args.courseid))
 
 
 if args.detailed is True:

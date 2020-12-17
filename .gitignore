@@ -5,4 +5,5 @@
 *.csv
 *.log
 config.ini
-teachable.cache
+*.cache
+*.db

@@ -20,13 +20,13 @@ args = parser.parse_args()
 api = TeachableAPI()
 school = School(api)
 if args.search:
-    courses = api.findCourses(args.search)
+    courses = api.find_courses(args.search)
 else:
-    courses = api.findCourses('')
+    courses = api.find_courses('')
 
 if courses:
     for course in courses:
-        api.getLeaderboardCSV(course, args.filename)
+        api.get_leaderboard_csv(course, args.filename)
 else:
     print('Sorry no courses found with the term \'{search}\''.format(search=args.search))
 

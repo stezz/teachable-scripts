@@ -4,20 +4,35 @@ class Course:
         self.teachableAPI = teachableAPI
         self.id = courseData.get('id')
         self.name = courseData.get('name')
-        self.price = self.getPrice()
-        self.sections = self.getSections()
-        self.lectures = self.getLectures()
+        self._price = None
+        self._sections = None
+        self._lectures = None
 
     def getPrice(self):
-        price = self.teachableAPI.getCoursePrice(self.id)
+        price = self.teachableAPI.get_course_price(self.id)
         return price
 
+    @property
+    def price(self):
+        if not self._price:
+            self._price = self.teachableAPI.get_course_price(self.id)
+        return self._price
+
     def getSections(self):
-        sections = self.teachableAPI.getCourseSections(self.id)
+        sections = self.teachableAPI.get_course_sections(self.id)
         sectionslist = []
         for sectionJson in sections:
             sectionslist.append(CourseSection(sectionJson))
         return sectionslist
+
+    @property
+    def sections(self):
+        if not self._sections:
+            sections = self.teachableAPI.get_course_sections(self.id)
+            self._sections = []
+            for sectionJson in sections:
+                self._sections.append(CourseSection(sectionJson))
+        return self._sections
 
     def getLectures(self):
         '''Returns the list of all the lectures as CourseSectionLecture objects'''
@@ -27,6 +42,15 @@ class Course:
                 lectures.extend(section.lectures)
         return lectures
 
+    @property
+    def lectures(self):
+        if not self._lectures:
+            self._lectures = []
+            if self.sections:
+                for section in self.sections:
+                    self._lectures.extend(section.lectures)
+        return self._lectures
+
     def getLectureWithId(self,lectureId):
         for section in self.getSections():
             lecture = section.getLectureWithId(lectureId)
@@ -34,6 +58,11 @@ class Course:
                 return lecture
         return None
 
+    def __str__(self):
+        return '{} (id:{})'.format(self.name, self.id)
+
+    def __repr__(self):
+        return '<Course({})>'.format(self.id)
 
 class CourseSection:
     def __init__(self, jsonData):
@@ -61,6 +90,8 @@ class CourseSectionLecture:
 
     def getDurationAsText(self):
         return str(datetime.timedelta(seconds=self.duration))
+
+
 
 
 
