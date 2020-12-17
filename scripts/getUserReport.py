@@ -47,7 +47,7 @@ if args.emails:
         users_mails.append(email)
 
 if args.search:
-    users_mails = [x.get('email') for x in api.find_many_users(args.search)]
+    users_mails = [x.email for x in api.find_many_users(args.search)]
 
 if not users_mails:
     users_mails = [x.email for x in api.school.users]

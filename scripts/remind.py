@@ -13,7 +13,6 @@ from email_utils.email_utils import Email
 from email_utils.email_utils import EmailConnection
 from email_utils.email_utils import render_template
 from teachable.api import TeachableAPI
-from teachable.school import School
 from teachable.user import User
 
 
@@ -45,7 +44,6 @@ def parse_arguments():
 def remind_app(args):
     """Main application"""
     api = TeachableAPI()
-    school = School(api)
     config = api.config
     defaults = config['DEFAULT']
     site_url = defaults['site_url']
@@ -55,13 +53,13 @@ def remind_app(args):
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
     templates_dir = os.path.join(sys.prefix, defaults['templates_dir'])
+    # TODO: Move logconf location to config.ini?
     logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
     now = datetime.datetime.now()
-    logger.info('Connecting to server...')
+    logger.info('Connecting to email server ({})'.format(smtp_server))
     server_str = smtp_server + ':' + str(smtp_port)
     server = EmailConnection(server_str, smtp_user, smtp_pwd)
     today = datetime.date.today()
-    logging.debug('This is just for checking the log levels')
 
     for section in config.keys():
         if section != 'DEFAULT':
@@ -70,7 +68,7 @@ def remind_app(args):
             notif_freq = int(config[section]['freq'])
             data = []
             warn_students = []
-            users_mails = [x.get('email') for x in api.find_many_users(config[section]['emailsearch'])]
+            users_mails = [x.email for x in api.find_many_users(config[section]['emailsearch'])]
             # First send a reminder to all that need it
             for user_mail in users_mails:
                 user = User(api, user_mail)

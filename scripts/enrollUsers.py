@@ -39,7 +39,7 @@ for user in records:
             teachable_user = api.find_user(user['email'])
             api.usecache = True
             if teachable_user != None:
-                resp = api.enroll_user_to_course(teachable_user['id'], courseId)
+                resp = api.enroll_user_to_course(teachable_user.id, courseId)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])
                 else:

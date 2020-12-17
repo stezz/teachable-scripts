@@ -102,7 +102,7 @@ class User:
     @property
     def info(self):
         if not self._info:
-            self._info = self.api.find_user(self.email)
+            self._info = self.api.get_user_info(self.email)
             if not self._info:
                 pass
                 # self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))

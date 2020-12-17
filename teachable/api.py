@@ -143,9 +143,25 @@ class TeachableAPI:
         return school_info
 
     def find_user(self, email):
-        # TODO: we should return here a list of User objects #
         """Searches for a specific user, the API uses the same endpoint, for
-        one or many"""
+        one or many
+        :param email: email address of the user you are searching
+        :return: the user you are searching
+        :rtype: User
+        """
+        user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
+        if len(user_list) == 0:
+            return None
+        else:
+            return User(self, user_list[0]['email'])
+
+    def get_user_info(self, email):
+        """Searches for a specific user, the API uses the same endpoint, for
+        one or many
+        :param email: email address of the user you are searching
+        :return: the json with the info of the user you are searching
+        :rtype: json
+        """
         user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
         if len(user_list) == 0:
             return None
@@ -153,16 +169,23 @@ class TeachableAPI:
             return user_list[0]
 
     def find_many_users(self, email):
-        # TODO: we should return here a list of User objects #
         """Searches for multiple users, the API uses the same endpoint for one
-        or many"""
+        or many
+        :param email: part of email address of the user you are searching (e.g. @gmail.com)
+        :return: list of users you are searching
+        :rtype: [User]
+        """
         user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
         if len(user_list) == 0:
             return None
         else:
-            return user_list
+            return [User(self, user['email']) for user in user_list]
 
     def get_all_users(self):
+        """Gets all the Users registered to the school
+        :return: list of all users in the school
+        :rtype: [User]
+        """
         user_list = self._get_json_at(self.URL_GET_ALL_USERS).get('users')
         if len(user_list) == 0:
             return None
@@ -170,7 +193,11 @@ class TeachableAPI:
             return [User(self, user['email']) for user in user_list]
 
     def _get_last_notif(self, email):
-        """Returns the notification status dict"""
+        """Returns the date of the last notification sent to the user
+        :param email: email of the user you are interested into
+        :return: last notification date
+        :rtype: datetime.date
+        """
         try:
             notified = self.notif_status[email]
             self.logger.debug('{} was sent a notification last time on {}'.format(email, notified))
