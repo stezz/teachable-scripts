@@ -58,6 +58,11 @@ class Course:
                 return lecture
         return None
 
+    def __str__(self):
+        return '{} (id:{})'.format(self.name, self.id)
+
+    def __repr__(self):
+        return '<Course({})>'.format(self.id)
 
 class CourseSection:
     def __init__(self, jsonData):
@@ -85,6 +90,8 @@ class CourseSectionLecture:
 
     def getDurationAsText(self):
         return str(datetime.timedelta(seconds=self.duration))
+
+
 
 
 

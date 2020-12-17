@@ -50,7 +50,7 @@ if args.search:
     users_mails = [x.get('email') for x in api.find_many_users(args.search)]
 
 if not users_mails:
-    users_mails = [x.get('email') for x in api.get_all_users()]
+    users_mails = [x.email for x in api.school.users]
 
 data = []
 for user_mail in users_mails:

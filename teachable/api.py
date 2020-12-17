@@ -143,6 +143,7 @@ class TeachableAPI:
         return school_info
 
     def find_user(self, email):
+        # TODO: we should return here a list of User objects #
         """Searches for a specific user, the API uses the same endpoint, for
         one or many"""
         user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
@@ -152,6 +153,7 @@ class TeachableAPI:
             return user_list[0]
 
     def find_many_users(self, email):
+        # TODO: we should return here a list of User objects #
         """Searches for multiple users, the API uses the same endpoint for one
         or many"""
         user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
@@ -161,13 +163,6 @@ class TeachableAPI:
             return user_list
 
     def get_all_users(self):
-        user_list = self._get_json_at(self.URL_GET_ALL_USERS).get('users')
-        if len(user_list) == 0:
-            return None
-        else:
-            return user_list
-
-    def _get_all_users(self):
         user_list = self._get_json_at(self.URL_GET_ALL_USERS).get('users')
         if len(user_list) == 0:
             return None

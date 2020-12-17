@@ -2,21 +2,23 @@
 import datetime
 import time
 from teachable.school import School
+import logging
 
 
 class User:
-    def __init__(self, api, email='', name=''):
+    def __init__(self, api, email):
         self.api = api
         self._info = None
         self.email = email.strip()
         #        self._email = self.email = email.strip()
-        self._name = self.name = name.strip()
+        self._name = None
         #        self._name = None
         self._id = None
         self._reportCard = None
         self._exists = None
         self._notified = None
         self._school = None
+        self.logger = logging.getLogger('TeachableAPI')
 
     @property
     def reportcard(self):
@@ -39,6 +41,10 @@ class User:
             # we allow setting the name only if the user does not exist already
             # on the server side
             self._name = name
+        else:
+            self.logger.error("Can't set the name of {} as it already exists on Teachable".
+                              format(self._name))
+
 
     @property
     def school(self):

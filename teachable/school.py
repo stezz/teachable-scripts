@@ -20,7 +20,7 @@ class School:
     @property
     def users(self):
         if not self._users:
-            self._users = self.api._get_all_users()
+            self._users = self.api.get_all_users()
         return self._users
 
     @property
@@ -56,3 +56,9 @@ class School:
             if course.id == course_id:
                 val = course
         return val
+
+    def __str__(self):
+        return '{} (id:{})'.format(self.name, self.id)
+
+    def __repr__(self):
+        return '<School({})>'.format(self.id)
