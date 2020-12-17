@@ -51,6 +51,8 @@ class School:
         return self._courses
 
     def get_course_with_id(self, course_id):
+        val = None
         for course in self.get_course_list():
             if course.id == course_id:
-                return course
+                val = course
+        return val

@@ -33,7 +33,7 @@ class TeachableAPI:
     URL_ENROLLED_USER = '/admin/users/USER_ID/enrolled'
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
 
-    def __init__(self):
+    def __init__(self, config_file=None):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.logger = logging.getLogger('TeachableAPI')
         self.usecache = True
@@ -42,7 +42,10 @@ class TeachableAPI:
         self.site_url = None
         self.session = None
         self.cached_data = None
-        conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
+        if not config_file:
+            conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
+        else:
+            conf_file = config_file
         self.config = self.get_config(conf_file)
         if self.config:
             defaults = self.config['DEFAULT']

@@ -42,9 +42,6 @@ def parse_arguments():
     return arguments
 
 
-logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
-
-
 def remind_app(args):
     """Main application"""
     api = TeachableAPI()
@@ -58,7 +55,7 @@ def remind_app(args):
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
     templates_dir = os.path.join(sys.prefix, defaults['templates_dir'])
-
+    logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
     now = datetime.datetime.now()
     logger.info('Connecting to server...')
     server_str = smtp_server + ':' + str(smtp_port)
@@ -78,7 +75,7 @@ def remind_app(args):
             for user_mail in users_mails:
                 user = User(api, user_mail)
                 since_last_notif = (today - user.notified).days
-                summary_stats = user.get_summary_stats(school, int(config[section]['course_id']))
+                summary_stats = user.get_summary_stats(int(config[section]['course_id']))
                 # Saves the overall stats separately
                 data += summary_stats
                 if summary_stats:

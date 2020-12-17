@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import time
+from teachable.school import School
 
 
 class User:
@@ -15,6 +16,7 @@ class User:
         self._reportCard = None
         self._exists = None
         self._notified = None
+        self._school = None
 
     @property
     def reportcard(self):
@@ -37,6 +39,13 @@ class User:
             # we allow setting the name only if the user does not exist already
             # on the server side
             self._name = name
+
+    @property
+    def school(self):
+        # school getter property
+        if not self._school:
+            self._school = School(self.api)
+        return self._school
 
     @property
     def notified(self):
@@ -78,7 +87,9 @@ class User:
     @property
     def exists(self):
         if not self._exists:
-            if not self.info:
+            if self.info:
+                self._exists = True
+            else:
                 self._exists = False
         return self._exists
 
@@ -94,32 +105,36 @@ class User:
     def create(self, course_id=None):
         """Create the user on the server side, if the user doesn't exist and it
         has valid email """
-        if self.api.check_email(self.email):
-            new = self.api._add_user_to_school(self, course_id)
-            if new['message'] == 'Users imported':
-                # self.logger.info('Waiting Teachable to update backend')
-                time.sleep(1)
-                self.api.usecache = False
-                # self.logger.debug('Refreshing info for user {}'.format(self.email))
-                property().getter(self.info)
-                self.api.usecache = True
+        if self.exists is not True:
+            if self.api.check_email(self.email):
+                new = self.api._add_user_to_school(self, course_id)
+                if new['message'] == 'Users imported':
+                    # self.logger.info('Waiting Teachable to update backend')
+                    time.sleep(1)
+                    self.api.usecache = False
+                    # self.logger.debug('Refreshing info for user {}'.format(self.email))
+                    property().getter(self.info)
+                    self.api.usecache = True
+            else:
+                new = {'message': '{} is not a valid email address'.format(self.email)}
         else:
-            new = {'message': '{} is not a valid email address'.format(self.email)}
+            new = {'message': 'user with email {} already exists'.format(self.email)}
         return new
 
-    def get_summary_stats(self, school, course_id=0):
+    def get_summary_stats(self, course_id=0):
+        # school is not really needed here, since every user is only part of a specific school
         """Returns a list of lists with a summary stat for the specific user"""
         stats = []
         now = datetime.datetime.today()
-        for (key, courseData) in self.reportcard.items():
+        for (key, course_data) in self.reportcard.items():
             if key != 'meta':
-                current_course_id = courseData.get('course_id')
+                current_course_id = course_data.get('course_id')
                 if ((course_id != 0) and current_course_id == course_id) or course_id == 0:
-                    course = school.get_course_with_id(course_id)
-                    percentage = courseData.get('percent_complete')
-                    update_time = datetime.datetime.strptime(courseData.get('updated_at'), '%Y-%m-%dT%H:%M:%SZ')
+                    course = self.school.get_course_with_id(current_course_id)
+                    percentage = course_data.get('percent_complete')
+                    update_time = datetime.datetime.strptime(course_data.get('updated_at'), '%Y-%m-%dT%H:%M:%SZ')
                     days_since_last = (now - update_time).days
-                    updated_at = update_time.strftime("%Y-%m-%d %H:%M:%S")
+                    updated_at = update_time.strftime('%Y-%m-%d %H:%M:%S')
                     stats.append([self.name, self.email, course.name, updated_at,
                                   str(percentage), days_since_last])
         return stats
@@ -131,9 +146,6 @@ class User:
     # 'course_id': course_id, 'course_name': course_list[course_data].get('name'), 'course_percentage': course.get(
     # 'percent_complete'), 'course_current_lecture': current_lecture_title, 'course_current_section':
     # current_section_title})
-
-    def get_course_statistics(self):
-        return self.reportcard.get('courseId')
 
     # def get_latest_viewed_title(self, course_id):
     #     courseStats = self.getStatisticsForCourse(course_id)
@@ -163,7 +175,7 @@ class User:
     #                 return lecture_name, section_name
     #     return '', ''
 
-    def get_detailed_stats(self, school):
+    def get_detailed_stats(self):
         """Returns a list of lists with detailed stats for the specific user"""
         data = []
         stats = self.api.get_user_course_report(self.id)
@@ -172,7 +184,7 @@ class User:
             completed_date = datetime.datetime.strptime(lectureProgress.get('completed_at'), '%Y-%m-%dT%H:%M:%SZ')
             course_id = lectureProgress.get('course_id')
             lecture_id = lectureProgress.get('lecture_id')
-            course = school.get_course_with_id(course_id)
+            course = self.school.get_course_with_id(course_id)
             lecture = course.getLectureWithId(lecture_id)
             str_cdate = completed_date.strftime("%Y-%m-%d %H:%M:%S")
             data.append([self.name, self.email, str_cdate, course.name,
