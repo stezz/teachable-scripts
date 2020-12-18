@@ -50,6 +50,7 @@ class TeachableAPI:
         if self.config:
             defaults = self.config['DEFAULT']
             self.notif_status = shelve.open(defaults['notifications_db'])
+            self.logger.debug('Using {} as notifications_db'.format(defaults['notifications_db']))
             self.site_url = defaults['site_url']
             self.email_regex = re.compile(defaults['email_regex'])
             self.session = requests.Session()
@@ -75,6 +76,7 @@ class TeachableAPI:
     def get_config(self, configfile):
         """Gets config options"""
         if os.path.exists(configfile):
+            self.logger.debug('Found config file at {}'.format(configfile))
             config = ConfigParser()
             config.read(configfile)
         else:

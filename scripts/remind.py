@@ -43,6 +43,7 @@ def parse_arguments():
 
 def remind_app(args):
     """Main application"""
+    logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
     api = TeachableAPI()
     config = api.config
     defaults = config['DEFAULT']
@@ -54,7 +55,6 @@ def remind_app(args):
     smtp_from = defaults['smtp_from']
     templates_dir = os.path.join(sys.prefix, defaults['templates_dir'])
     # TODO: Move logconf location to config.ini?
-    logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
     now = datetime.datetime.now()
     logger.info('Connecting to email server ({})'.format(smtp_server))
     server_str = smtp_server + ':' + str(smtp_port)
@@ -150,10 +150,13 @@ def remind_app(args):
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                              message_type='html', subject=subject, message=message,
                              attachments=[ofile], message_encoding="utf-8")
-                if args.dryrun is not True and since_last_notif >= notif_freq:
-                    logger.info('Sending...')
-                    server.send(mail, bcc=smtp_user)
-                    api._set_last_notif(email_addr, today)
+                if args.dryrun is not True:
+                    if since_last_notif >= notif_freq:
+                        logger.info('Sending report to {}'.format(to_addr))
+                        server.send(mail, bcc=smtp_user)
+                        api._set_last_notif(email_addr, today)
+                else:
+                    logger.info('[DRYRUN] Not sending email to {}'.format(to_addr))
 
     server.close()
 
