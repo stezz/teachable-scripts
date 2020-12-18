@@ -3,6 +3,11 @@ from teachable.course import Course
 
 class School:
     def __init__(self, api):
+        """
+        A class that represents the school connected with this account
+
+        :param api: TeachableAPI
+        """
         self.api = api
         self._courses = None
         self._info = None
@@ -14,7 +19,7 @@ class School:
         raw_course_list = self.api.get_course_list()
         course_list = []
         for courseData in raw_course_list:
-            course_list.append(Course(self.api, courseData))
+            course_list.append(Course(self.api, courseData.get('id')))
         return course_list
 
     @property
@@ -47,7 +52,7 @@ class School:
             raw_course_list = self.api.get_course_list()
             self._courses = []
             for courseData in raw_course_list:
-                self._courses.append(Course(self.api, courseData))
+                self._courses.append(Course(self.api, courseData.get('id')))
         return self._courses
 
     def get_course_with_id(self, course_id):

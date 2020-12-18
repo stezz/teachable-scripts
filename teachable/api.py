@@ -10,6 +10,7 @@ from configparser import ConfigParser
 import logging
 from teachable.school import School
 from teachable.user import User
+from teachable.course import Course
 import re
 
 
@@ -18,6 +19,7 @@ class TeachableAPI:
     URL_GET_ALL_USERS = '/api/v1/users'
     URL_SCHOOL_INFO = '/api/v1/school'
     URL_FIND_USER = '/api/v1/users?name_or_email_cont='
+    URL_COURSE_INFO = '/api/v1/courses/COURSE_ID'
     URL_REPORT_CARD = '/api/v1/users/USER_ID/report_card'
     URL_COURSE_REPORT = '/api/v1/users/USER_ID/course_report'
     URL_CURRICULUM = '/api/v1/courses/COURSE_ID/curriculum'
@@ -117,15 +119,17 @@ class TeachableAPI:
         return self._courses
 
     def get_leaderboard_csv(self, course, filename):
-        """Gets a course JSON dict as input"""
+        """Fetches the leaderboard CSV list directly from Teachable and saves it as a CSV file
+
+        :param course: Course object
+        :param filename: name of the CSV file to use as output
+        """
         per_page = '100000'  # includes in the leaderboard CSV as many as PER_PAGE users
-        course_id = course.get('id')
-        course_name = course.get('name')
-        path = self.URL_LEADERBOARD.replace('COURSE_ID', str(course_id)).replace('PER_PAGE', str(per_page))
+        path = self.URL_LEADERBOARD.replace('COURSE_ID', str(course.id)).replace('PER_PAGE', str(per_page))
         full_url = self.site_url + path
         r = self.session.get(full_url, allow_redirects=True)
         if filename == '':
-            filename = 'leaderboard_{course}.csv'.format(course=course_name)
+            filename = 'leaderboard_{course}.csv'.format(course=course.name)
         open(filename, 'wb').write(r.content)
 
     def get_user_course_report(self, user_id):
@@ -139,6 +143,11 @@ class TeachableAPI:
     def get_course_list(self):
         course_info = self._get_json_at(self.URL_COURSES)
         return course_info.get('courses')
+
+    def get_course_info(self, course_id):
+        url_course_info = self.URL_COURSE_INFO.replace('COURSE_ID', str(course_id))
+        course_info = self._get_json_at(url_course_info)
+        return course_info
 
     def get_school_info(self):
         school_info = self._get_json_at(self.URL_SCHOOL_INFO)
@@ -213,14 +222,21 @@ class TeachableAPI:
         self.notif_status.sync()
 
     def find_courses(self, course):
-        # TODO: Return Course Object #
-        """Searches for courses containing the specific text"""
+        """Searches for courses containing the specific text
+
+        :param course: Course
+        :return: Course list
+        :rtype: list(Course)
+        """
         course_list = self._get_json_at(self.URL_FIND_COURSE +
                                         course).get('courses')
         if len(course_list) == 0:
             return None
         else:
-            return course_list
+            courses = []
+            for course_data in course_list:
+                courses.append(Course(self, course_data.get('id')))
+            return courses
 
     def get_course_price(self, course_id):
         products = self.get_course_products(course_id)
@@ -285,7 +301,14 @@ class TeachableAPI:
         resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def _add_user_to_school(self, user, course_id=None):
+    def _add_user_to_school(self, user, course=None):
+        """
+        Adds a User to a school and enroll to a specific Course if provided
+
+        :param user: User object
+        :param course: Course object (optional)
+        :return: json
+        """
         # TODO: we might want to pass here also a Course object as input for better style
         users_json_array = []
         if self.check_email(user.email):
@@ -296,8 +319,8 @@ class TeachableAPI:
                 "role": "student",
                 "unsubscribe_from_marketing_emails": 'false'
             }
-            if course_id:
-                user_json["course_id"] = course_id
+            if course:
+                user_json["course_id"] = course.id
             users_json_array.append(user_json)
         payload = {
             "user_list": users_json_array,
@@ -305,8 +328,8 @@ class TeachableAPI:
             "users_role": "student",
             "author_bio_data": {}
         }
-        if course_id:
-            payload["course_id"] = course_id
+        if course:
+            payload["course_id"] = course.id
         resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 

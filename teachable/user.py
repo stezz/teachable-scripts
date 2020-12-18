@@ -191,10 +191,10 @@ class User:
             course_id = lectureProgress.get('course_id')
             lecture_id = lectureProgress.get('lecture_id')
             course = self.school.get_course_with_id(course_id)
-            lecture = course.getLectureWithId(lecture_id)
+            lecture = course.get_lecture_with_id(lecture_id)
             str_cdate = completed_date.strftime("%Y-%m-%d %H:%M:%S")
             data.append([self.name, self.email, str_cdate, course.name,
-                         lecture.name, lecture.getDurationAsText()])
+                         lecture.name, lecture.get_duration_as_text()])
         return data
 
     def is_enrolled_to_course(self, course_id):

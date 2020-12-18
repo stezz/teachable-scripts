@@ -1,41 +1,47 @@
 import datetime
+
+
 class Course:
-    def __init__(self, teachableAPI, courseData):
-        self.teachableAPI = teachableAPI
-        self.id = courseData.get('id')
-        self.name = courseData.get('name')
+    def __init__(self, teachable_api, course_id):
+        self.api = teachable_api
+        self.id = course_id
+        self._name = None
         self._price = None
         self._sections = None
         self._lectures = None
-
-    def getPrice(self):
-        price = self.teachableAPI.get_course_price(self.id)
-        return price
+        # TODO: add self._users to fetch all the users in this course
 
     @property
     def price(self):
         if not self._price:
-            self._price = self.teachableAPI.get_course_price(self.id)
+            self._price = self.api.get_course_price(self.id)
         return self._price
 
-    def getSections(self):
-        sections = self.teachableAPI.get_course_sections(self.id)
+    @property
+    def name(self):
+        if not self._name:
+            info = self.api.get_course_info(self.id)
+            self._name = info.get('name')
+        return self._name
+
+    def get_sections(self):
+        sections = self.api.get_course_sections(self.id)
         sectionslist = []
         for sectionJson in sections:
-            sectionslist.append(CourseSection(sectionJson))
+            sectionslist.append(Section(sectionJson))
         return sectionslist
 
     @property
     def sections(self):
         if not self._sections:
-            sections = self.teachableAPI.get_course_sections(self.id)
+            sections = self.api.get_course_sections(self.id)
             self._sections = []
             for sectionJson in sections:
-                self._sections.append(CourseSection(sectionJson))
+                self._sections.append(Section(sectionJson))
         return self._sections
 
-    def getLectures(self):
-        '''Returns the list of all the lectures as CourseSectionLecture objects'''
+    def get_lectures(self):
+        """Returns the list of all the lectures as CourseSectionLecture objects"""
         lectures = []
         if self.sections:
             for section in self.sections:
@@ -51,9 +57,9 @@ class Course:
                     self._lectures.extend(section.lectures)
         return self._lectures
 
-    def getLectureWithId(self,lectureId):
-        for section in self.getSections():
-            lecture = section.getLectureWithId(lectureId)
+    def get_lecture_with_id(self, lecture_id):
+        for section in self.get_sections():
+            lecture = section.get_lecture_with_id(lecture_id)
             if lecture:
                 return lecture
         return None
@@ -64,34 +70,33 @@ class Course:
     def __repr__(self):
         return '<Course({})>'.format(self.id)
 
-class CourseSection:
-    def __init__(self, jsonData):
-        self.id = jsonData.get('id')
-        self.name = jsonData.get('name')
-        self.lectures = []
-        lecturesJson = jsonData.get('lectures')
-        for rawLecture in lecturesJson:
-            self.lectures.append(CourseSectionLecture(rawLecture))
 
-    def getLectureWithId(self,lectureId):
+class Section:
+    # TODO: Improve the syntax of this
+    def __init__(self, json_data):
+        self.id = json_data.get('id')
+        self.name = json_data.get('name')
+        self.lectures = []
+        lectures_json = json_data.get('lectures')
+        for rawLecture in lectures_json:
+            self.lectures.append(Lecture(rawLecture))
+
+    def get_lecture_with_id(self, lecture_id):
         for lecture in self.lectures:
-            if lecture.id == lectureId:
+            if lecture.id == lecture_id:
                 return lecture
         return None
 
-class CourseSectionLecture:
-    def __init__(self, jsonData):
-        self.id = jsonData.get('id')
-        self.name = jsonData.get('name')
-        attachments = jsonData.get('attachments')
+
+class Lecture:
+    # TODO: Improve the syntax of this
+    def __init__(self, json_data):
+        self.id = json_data.get('id')
+        self.name = json_data.get('name')
+        attachments = json_data.get('attachments')
         self.duration = 0
         for attachment in attachments:
             self.duration += attachment.get('duration')
 
-    def getDurationAsText(self):
+    def get_duration_as_text(self):
         return str(datetime.timedelta(seconds=self.duration))
-
-
-
-
-
