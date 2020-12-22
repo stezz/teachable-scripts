@@ -22,6 +22,8 @@ class TeachableAPI:
     URL_COURSE_INFO = '/api/v1/courses/COURSE_ID'
     URL_REPORT_CARD = '/api/v1/users/USER_ID/report_card'
     URL_COURSE_REPORT = '/api/v1/users/USER_ID/course_report'
+    URL_COURSE_USERS = '/api/v1/users?enrolled_in_specific%5B%5D=COURSE_ID'
+    URL_COURSE_COMPLETED = '/api/v1/users?completed_course_in_any[]=COURSE_ID'
     URL_CURRICULUM = '/api/v1/courses/COURSE_ID/curriculum'
     URL_FIND_COURSE = '/api/v1/courses?name_cont='
     URL_COURSE_PRODUCTS = '/api/v1/courses/COURSE_ID/products'
@@ -249,6 +251,23 @@ class TeachableAPI:
         path = self.URL_COURSE_PRODUCTS.replace('COURSE_ID', str(course_id))
         result = self._get_json_at(path)
         return result.get('products')
+
+    def get_course_users(self, course_id):
+        path = self.URL_COURSE_USERS.replace('COURSE_ID', str(course_id))
+        users = self._get_json_at(path).get('users')
+        if len(users) == 0:
+            return None
+        else:
+            return [User(self, user['email']) for user in users]
+
+    def get_course_users_completed(self, course_id):
+        path = self.URL_COURSE_COMPLETED.replace('COURSE_ID', str(course_id))
+        users = self._get_json_at(path).get('users')
+        if len(users) == 0:
+            return None
+        else:
+            return [User(self, user['email']) for user in users]
+
 
     def get_user_report_card(self, user_id):
         """Gets the full report card fot userId, returning the full list of

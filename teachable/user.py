@@ -194,7 +194,7 @@ class User:
             lecture = course.get_lecture_with_id(lecture_id)
             str_cdate = completed_date.strftime("%Y-%m-%d %H:%M:%S")
             data.append([self.name, self.email, str_cdate, course.name,
-                         lecture.name, lecture.get_duration_as_text()])
+                         lecture.name, lecture.duration_as_text])
         return data
 
     def is_enrolled_to_course(self, course_id):
@@ -208,10 +208,9 @@ class User:
         return '<User({})>'.format(self.email)
 
     def enroll(self, course_id):
-        # TODO: use self.api.enroll_user_to_course(self.id, course_id)
-        pass
+        return self.api.enroll_user_to_course(self.id, course_id)
+
 
     def unenroll(self, course_id):
-        # TODO: use self.api.unenroll_user_from_course(self.id, course_id)
-        pass
+        return self.api.unenroll_user_from_course(self.id, course_id)
 

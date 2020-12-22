@@ -10,12 +10,26 @@ class Course:
         self._sections = None
         self._lectures = None
         # TODO: add self._users to fetch all the users in this course
+        self._users = None
+        self._completed = None
 
     @property
     def price(self):
         if not self._price:
             self._price = self.api.get_course_price(self.id)
         return self._price
+
+    @property
+    def users(self):
+        if not self._users:
+            self._users = self.api.get_course_users(self.id)
+        return self._users
+
+    @property
+    def completed(self):
+        if not self._completed:
+            self._completed = self.api.get_course_users_completed(self.id)
+        return self._completed
 
     @property
     def name(self):
@@ -72,7 +86,6 @@ class Course:
 
 
 class Section:
-    # TODO: Improve the syntax of this
     def __init__(self, json_data):
         self.id = json_data.get('id')
         self.name = json_data.get('name')
@@ -87,16 +100,25 @@ class Section:
                 return lecture
         return None
 
+    def __str__(self):
+        return '{} (id:{})'.format(self.name, self.id)
+
+    def __repr__(self):
+        return '<Section({})>'.format(self.id)
+
 
 class Lecture:
-    # TODO: Improve the syntax of this
     def __init__(self, json_data):
         self.id = json_data.get('id')
         self.name = json_data.get('name')
-        attachments = json_data.get('attachments')
+        self.attachments = json_data.get('attachments')
         self.duration = 0
-        for attachment in attachments:
+        for attachment in self.attachments:
             self.duration += attachment.get('duration')
+        self.duration_as_text = str(datetime.timedelta(seconds=self.duration))
 
-    def get_duration_as_text(self):
-        return str(datetime.timedelta(seconds=self.duration))
+    def __str__(self):
+        return '{} (id:{})'.format(self.name, self.id)
+
+    def __repr__(self):
+        return '<Lecture({})>'.format(self.id)
