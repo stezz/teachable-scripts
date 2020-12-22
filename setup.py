@@ -59,7 +59,7 @@ setup(
                 ("templates", ["templates/email_inactive.txt",
                                "templates/email_notstarted.txt",
                                "templates/weekly_report.html"])],
-    entry_points={"console_scripts": ["remind=scripts.remind:main", "enroll=scripts.enrollUsers"]},  # Optional
+    entry_points={"console_scripts": ["remind=scripts.remind:main", "enroll=scripts.enrollUsers:main"]},  # Optional
     # scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional
         "Bug Reports": "https://github.com/stezz/teachable-scripts/issues",

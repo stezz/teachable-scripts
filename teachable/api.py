@@ -299,6 +299,7 @@ class TeachableAPI:
         return json.loads(resp)
 
     def add_user_to_school(self, userdict, course_id):
+        # TODO Pass a User and a Course object here
         users_json_array = []
         if self.check_email(userdict['email']):
             user_json = {
@@ -353,21 +354,20 @@ class TeachableAPI:
         return json.loads(resp)
 
     def enroll_users_to_course(self, user_id_array, course_id):
-        # TODO: we might want to pass here User and Course objects as input?
+        # TODO: we need to FIX this since we changed below
         responses = []
         for userRow in user_id_array:
             response = self.enroll_user_to_course(str(userRow[0]), course_id)
             responses.append(response)
         return responses
 
-    def enroll_user_to_course(self, user_id, course_id):
-        # TODO: we might want to pass here User and Course objects as input?
-        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user_id))
-        json_body = json.dumps({"course_id": int(course_id)})
+    def enroll_user_to_course(self, user, course):
+        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user.id))
+        json_body = json.dumps({"course_id": int(course.id)})
         response = self._post_json_at(path, json_body)
         # Now refreshing the status in the cache
         self.usecache = False
-        self.get_enrolled_courses(user_id)
+        self.get_enrolled_courses(user.id)
         self.usecache = True
         if response:
             return json.loads(response)

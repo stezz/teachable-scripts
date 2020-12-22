@@ -1,6 +1,7 @@
 # coding: utf8
 import argparse
 from teachable.user import User
+from teachable.course import Course
 from teachable.api import TeachableAPI
 import pyexcel as px
 import os
@@ -42,8 +43,9 @@ def enroll_app(args):
         # search if the user with the given email exists
         if user['email'] != '':
             u = User(api, user['email'])
+            course = Course(api, course_id)
             if u.exists:
-                resp = u.enroll(course_id)
+                resp = u.enroll(course)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])
                 else:
@@ -52,7 +54,7 @@ def enroll_app(args):
                 logger.info('User {} doesn\'t exist. Creating and registering'.format(user['fullname']))
                 # Add the user to the school and register to the course otherwise
                 u.name = user['fullname']
-                resp = u.create(course_id)
+                resp = u.create(course)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])
 
