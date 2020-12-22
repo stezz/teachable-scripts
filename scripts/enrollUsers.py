@@ -1,55 +1,66 @@
 # coding: utf8
 import argparse
-import csv
-import string
-from User import User
-from TeachableAPI import TeachableAPI
-from School import School
+from teachable.user import User
+from teachable.api import TeachableAPI
 import pyexcel as px
 import os
-import configparser as cfgp
-
 import logging
+import sys
 import logging.config
-logging.config.fileConfig(fname='logconf.ini', disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
 
-parser = argparse.ArgumentParser(description='''Mass enroll users from Excel or CSV file into a specified course''', epilog="""---""")
-parser.add_argument('input_file', nargs=1, help='Excel or CSV file. The only needed columns are \'fullname\' and \'email\' ')
-parser.add_argument('courseId', type=str, nargs=1, help='The id of the course they should be enrolled in')
 
-args = parser.parse_args()
+def setup_logging(logconf):
+    if os.path.exists(logconf):
+        logging.debug('Found logconf in {}'.format(logconf))
+        logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
+        lg = logging.getLogger(__name__)
+    else:
+        logging.error('Log conf doesn\'t exist [{}]'.format(logconf))
+        logging.error('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
+        sys.exit()
+    return lg
 
-api = TeachableAPI()
 
-config = api.get_config('./config.ini')
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='''Mass enroll users from Excel or CSV file into a specified course''',
+                                     epilog="""---""")
+    parser.add_argument('input_file', nargs=1,
+                        help='Excel or CSV file. The only needed columns are \'fullname\' and \'email\' ')
+    parser.add_argument('courseId', type=str, nargs=1, help='The id of the course they should be enrolled in')
+    args = parser.parse_args()
+    return args
 
-defaults = config['DEFAULT']
 
-courseId = args.courseId[0]
-inputFile = args.input_file[0]
+def enroll_app(args):
+    logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
+    api = TeachableAPI()
+    course_id = args.courseId[0]
+    input_file = args.input_file[0]
+    records = px.get_records(file_name=input_file)
 
-records = px.get_records(file_name=inputFile)
-
-for user in records:
-    # search if the user with the given email exists
-    if user['email'] != '':
-        if api.check_email(user['email']):
-            api.usecache = False
-            teachable_user = api.find_user(user['email'])
-            api.usecache = True
-            if teachable_user != None:
-                resp = api.enroll_user_to_course(teachable_user.id, courseId)
+    for user in records:
+        # search if the user with the given email exists
+        if user['email'] != '':
+            u = User(api, user['email'])
+            if u.exists:
+                resp = u.enroll(course_id)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])
                 else:
-                    logger.info(user['fullname']+' signed up!')
+                    logger.info(u.name + ' signed up!')
             else:
                 logger.info('User {} doesn\'t exist. Creating and registering'.format(user['fullname']))
                 # Add the user to the school and register to the course otherwise
-                # TODO: we should use here user.create(courseId)
-                resp = api.add_user_to_school(user, courseId)
+                u.name = user['fullname']
+                resp = u.create(course_id)
                 if 'message' in resp.keys():
                     logger.info(resp['message'])
-        else:
-            logger.error('{} is not a valid email address'.format(user['email']))
+
+
+def main():
+    args = parse_arguments()
+    enroll_app(args)
+
+
+if __name__ == '__main__':
+    main()

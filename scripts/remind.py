@@ -46,6 +46,7 @@ def remind_app(args):
     logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
     api = TeachableAPI()
     config = api.config
+    #   override_mail = 'stefano.mosconi@britemind.io'
     defaults = config['DEFAULT']
     site_url = defaults['site_url']
     smtp_pwd = defaults['smtp_pwd']
@@ -54,7 +55,6 @@ def remind_app(args):
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
     templates_dir = os.path.join(sys.prefix, defaults['templates_dir'])
-    # TODO: Move logconf location to config.ini?
     now = datetime.datetime.now()
     logger.info('Connecting to email server ({})'.format(smtp_server))
     server_str = smtp_server + ':' + str(smtp_port)
@@ -84,6 +84,7 @@ def remind_app(args):
                     firstname = name.split()[0]
                     from_addr = formataddr((smtp_from, smtp_user))
                     to_addr = formataddr((name, email_addr))
+                    #to_addr = formataddr((name, override_mail))
                     cc_addr = None
                     msg_dict = {'firstname': firstname, 'days_since': days_since, 'course': course,
                                 'date': updated_at, 'url': site_url, 'name_from': smtp_from}
@@ -133,6 +134,7 @@ def remind_app(args):
                 firstname = name.split()[0]
                 from_addr = formataddr((smtp_from, smtp_user))
                 to_addr = formataddr((name, email_addr))
+                #to_addr = formataddr((name, override_mail))
                 if warn_students:
                     markup_txt = ptw.HtmlTableWriter()
                     markup_txt.headers = headers
