@@ -9,7 +9,6 @@ class Course:
         self._price = None
         self._sections = None
         self._lectures = None
-        # TODO: add self._users to fetch all the users in this course
         self._users = None
         self._completed = None
 

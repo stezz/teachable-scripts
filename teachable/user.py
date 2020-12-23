@@ -108,13 +108,12 @@ class User:
                 # self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))
         return self._info
 
-    def create(self, course_id=None):
+    def create(self, course=None):
         """Create the user on the server side, if the user doesn't exist and it
         has valid email """
-        # TODO Pass a Course object here
         if self.exists is not True:
             if self.api.check_email(self.email):
-                new = self.api._add_user_to_school(self, course_id)
+                new = self.api._add_user_to_school(self, course)
                 if new['message'] == 'Users imported':
                     # self.logger.info('Waiting Teachable to update backend')
                     time.sleep(1)
@@ -212,6 +211,6 @@ class User:
         return self.api.enroll_user_to_course(self, course)
 
 
-    def unenroll(self, course_id):
-        return self.api.unenroll_user_from_course(self.id, course_id)
+    def unenroll(self, course):
+        return self.api.unenroll_user_from_course(self, course)
 

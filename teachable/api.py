@@ -28,11 +28,12 @@ class TeachableAPI:
     URL_FIND_COURSE = '/api/v1/courses?name_cont='
     URL_COURSE_PRODUCTS = '/api/v1/courses/COURSE_ID/products'
     URL_IMPORT_USERS = '/api/v1/import/users'
-    URL_ENROLLMENTS_USER = '/api/v1/users/USER_ID/enrollments'
+    URL_ENROLLMENTS_USER = '/api/v1/enrollments?is_active=true&user_id=USER_ID'
     URL_LEADERBOARD = '/api/v1/courses/COURSE_ID/leaderboard.csv?page=1&per=PER_PAGE'
     URL_COURSE_PROGRESS = '/api/v1/course_progresses?user_id=USER_ID'  # no idea what does it do
     URL_PAGES_CERTIFICATE = '/api/v1/pages?feature=certificate'  # no idea what does it do
-    URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID'  #
+    URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments'
+    # URL_ENROLL_USER = '/api/v1/users/USER_ID/enrollments/COURSE_ID'  #
     #    -data-binary '{"course_id":int,"user_id":int}' \
     URL_ENROLLED_USER = '/admin/users/USER_ID/enrolled'
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
@@ -194,19 +195,21 @@ class TeachableAPI:
         else:
             return [User(self, user['email']) for user in user_list]
 
-    def get_all_users(self):
+    def get_all_users(self) -> list[User]:
         """Gets all the Users registered to the school
+
         :return: list of all users in the school
         :rtype: [User]
         """
         user_list = self._get_json_at(self.URL_GET_ALL_USERS).get('users')
         if len(user_list) == 0:
-            return None
+            return []
         else:
             return [User(self, user['email']) for user in user_list]
 
-    def _get_last_notif(self, email):
+    def _get_last_notif(self, email: str) -> datetime.date:
         """Returns the date of the last notification sent to the user
+
         :param email: email of the user you are interested into
         :return: last notification date
         :rtype: datetime.date
@@ -268,7 +271,6 @@ class TeachableAPI:
         else:
             return [User(self, user['email']) for user in users]
 
-
     def get_user_report_card(self, user_id):
         """Gets the full report card fot userId, returning the full list of
         lessons the user has completed"""
@@ -321,7 +323,7 @@ class TeachableAPI:
         resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def _add_user_to_school(self, user, course=None):
+    def _add_user_to_school(self, user: User, course: Course = None) -> str:
         """
         Adds a User to a school and enroll to a specific Course if provided
 
@@ -329,7 +331,6 @@ class TeachableAPI:
         :param course: Course object (optional)
         :return: json
         """
-        # TODO: we might want to pass here also a Course object as input for better style
         users_json_array = []
         if self.check_email(user.email):
             user_json = {
@@ -353,16 +354,8 @@ class TeachableAPI:
         resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def enroll_users_to_course(self, user_id_array, course_id):
-        # TODO: we need to FIX this since we changed below
-        responses = []
-        for userRow in user_id_array:
-            response = self.enroll_user_to_course(str(userRow[0]), course_id)
-            responses.append(response)
-        return responses
-
-    def enroll_user_to_course(self, user, course):
-        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user.id))
+    def enroll_user_to_course(self, user: User, course: Course) -> str:
+        path = self.URL_ENROLL_USER.replace('USER_ID', str(user.id))
         json_body = json.dumps({"course_id": int(course.id)})
         response = self._post_json_at(path, json_body)
         # Now refreshing the status in the cache
@@ -374,31 +367,45 @@ class TeachableAPI:
         else:
             return response
 
-    def unenroll_user_from_course(self, user_id, course_id):
+    def unenroll_user_from_course(self, user: User, course: Course) -> str:
+        """
+        Unenrolls a user from a course.
+
+        :param user: User object
+        :param course: Course object
+        :return: response of the operation
+        """
         path = self.URL_UNENROLL_USER
-        json_body = json.dumps({"course_id": int(course_id), "user_id": int(user_id)})
+        json_body = json.dumps({"course_id": int(course.id), "user_id": int(user.id)})
         response = self._put_json_at(path, json_body)
         # updating also the cache for the enrolled courses
         self.usecache = False
-        self.get_enrolled_courses(user_id)
+        self.get_enrolled_courses(user.id)
         self.usecache = True
         if response:
             return json.loads(response)
         else:
             return response
 
-    def get_enrolled_courses(self, user_id):
-        # TODO: Return Course Object #
-        """Gets the courses the user is enrolled in"""
-        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user_id))
-        return self._get_json_at(path).get('enrollments')
-        # return [p['course_id'] for p in response if 'course_id' in p
-        #        and p['is_active'] == True]
+    def get_enrolled_courses(self, user_id: str) -> list[Course]:
+        """Gets the courses the user is enrolled in and returns it as a list
 
-    def check_enrollment_to_course(self, user_id, course_id):
-        """Check is a user is enrolled in a specific course"""
+        :param user_id: user id
+        :return: list of Course objects
+        """
+        path = self.URL_ENROLLMENTS_USER.replace('USER_ID', str(user_id))
+        courses = self._get_json_at(path).get('enrollments')
+        return [Course(self, c['course_id']) for c in courses]
+
+    def check_enrollment_to_course(self, user_id: str, course_id: str) -> bool:
+        """Check if a user is enrolled in a specific course
+
+        :param user_id: User id
+        :param course_id: Course id
+        :return: True if enrolled, False if not enrolled
+        """
         courses = self.get_enrolled_courses(user_id)
-        return int(course_id) in [p['course_id'] for p in courses if 'course_id' in p and p['is_active'] is True]
+        return int(course_id) in [p.id for p in courses]
 
     def _get_json_at(self, path):
         if self.usecache and path in self.cached_data:
