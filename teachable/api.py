@@ -25,6 +25,7 @@ class TeachableAPI:
     URL_COURSE_USERS = '/api/v1/users?enrolled_in_specific%5B%5D=COURSE_ID'
     URL_COURSE_COMPLETED = '/api/v1/users?completed_course_in_any[]=COURSE_ID'
     URL_CURRICULUM = '/api/v1/courses/COURSE_ID/curriculum'
+    URL_COURSE_LECTURES = '/api/v1/courses/COURSE_ID/lectures'
     URL_FIND_COURSE = '/api/v1/courses?name_cont='
     URL_COURSE_PRODUCTS = '/api/v1/courses/COURSE_ID/products'
     URL_IMPORT_USERS = '/api/v1/import/users'
@@ -156,12 +157,12 @@ class TeachableAPI:
         school_info = self._get_json_at(self.URL_SCHOOL_INFO)
         return school_info
 
-    def find_user(self, email):
+    def find_user(self, email: str) -> User or None:
         """Searches for a specific user, the API uses the same endpoint, for
         one or many
+
         :param email: email address of the user you are searching
         :return: the user you are searching
-        :rtype: User
         """
         user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
         if len(user_list) == 0:
@@ -169,29 +170,29 @@ class TeachableAPI:
         else:
             return User(self, user_list[0]['email'])
 
-    def get_user_info(self, email):
+    def get_user_info(self, email: str) -> json:
         """Searches for a specific user, the API uses the same endpoint, for
         one or many
+
         :param email: email address of the user you are searching
         :return: the json with the info of the user you are searching
-        :rtype: json
         """
         user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
         if len(user_list) == 0:
-            return None
+            return []
         else:
             return user_list[0]
 
-    def find_many_users(self, email):
+    def find_many_users(self, email: str) -> list[User]:
         """Searches for multiple users, the API uses the same endpoint for one
         or many
+
         :param email: part of email address of the user you are searching (e.g. @gmail.com)
         :return: list of users you are searching
-        :rtype: [User]
         """
         user_list = self._get_json_at(self.URL_FIND_USER + email).get('users')
         if len(user_list) == 0:
-            return None
+            return []
         else:
             return [User(self, user['email']) for user in user_list]
 

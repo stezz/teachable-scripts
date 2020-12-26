@@ -14,7 +14,7 @@ class User:
         self._name = None
         #        self._name = None
         self._id = None
-        self._reportCard = None
+        self._reportcard = None
         self._exists = None
         self._notified = None
         self._school = None
@@ -22,10 +22,10 @@ class User:
 
     @property
     def reportcard(self):
-        if not self._reportCard:
+        if not self._reportcard:
             if self.info:
-                self._reportCard = self.api.get_user_report_card(self.id)
-        return self._reportCard
+                self._reportcard = self.api.get_user_report_card(self.id)
+        return self._reportcard
 
     @property
     def name(self):
@@ -182,7 +182,10 @@ class User:
     #     return '', ''
 
     def get_detailed_stats(self):
-        """Returns a list of lists with detailed stats for the specific user"""
+        """Returns a list of lists with detailed stats for the specific user
+
+        :return: a list of lessons
+        """
         data = []
         stats = self.api.get_user_course_report(self.id)
         lectures_stats = stats.get('lecture_progresses')

@@ -1,8 +1,8 @@
 # coding: utf8
 import argparse
 import string
-from User import User
-from TeachableAPI import TeachableAPI
+from teachable.user import User
+from teachable.api import TeachableAPI
 import pytablewriter as ptw
 
 parser = argparse.ArgumentParser(description='''Get your Teachable students
