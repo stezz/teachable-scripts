@@ -3,7 +3,9 @@ import argparse
 import datetime
 import logging
 import logging.config
+from configparser import ConfigParser
 import os.path
+import os
 import sys
 from email.utils import formataddr
 
@@ -19,6 +21,15 @@ from teachable.user import User
 def setup_logging(logconf):
     if os.path.exists(logconf):
         logging.debug('Found logconf in {}'.format(logconf))
+        lgc = ConfigParser()
+        lgc.read(logconf)
+        if lgc.has_section('handler_rotatingHandler'):
+            d = lgc['handler_rotatingHandler']
+            args = d.get('args', '()')
+            logfilename = eval(args)[0]
+            logdirname = os.path.dirname(logfilename)
+            if not os.path.exists(logdirname):
+                os.makedirs(logdirname)
         logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
         lg = logging.getLogger(__name__)
     else:
@@ -84,7 +95,7 @@ def remind_app(args):
                     firstname = name.split()[0]
                     from_addr = formataddr((smtp_from, smtp_user))
                     to_addr = formataddr((name, email_addr))
-                    #to_addr = formataddr((name, override_mail))
+                    # to_addr = formataddr((name, override_mail))
                     cc_addr = None
                     msg_dict = {'firstname': firstname, 'days_since': days_since, 'course': course,
                                 'date': updated_at, 'url': site_url, 'name_from': smtp_from}
@@ -134,7 +145,7 @@ def remind_app(args):
                 firstname = name.split()[0]
                 from_addr = formataddr((smtp_from, smtp_user))
                 to_addr = formataddr((name, email_addr))
-                #to_addr = formataddr((name, override_mail))
+                # to_addr = formataddr((name, override_mail))
                 if warn_students:
                     markup_txt = ptw.HtmlTableWriter()
                     markup_txt.headers = headers

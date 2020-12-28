@@ -5,6 +5,7 @@ import json
 import sys
 import shelve
 import os.path
+import os
 import time
 from configparser import ConfigParser
 import logging
@@ -40,7 +41,6 @@ class TeachableAPI:
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
 
     def __init__(self, config_file=None):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
         self.logger = logging.getLogger('TeachableAPI')
         self.usecache = True
         self._school = None
@@ -55,8 +55,13 @@ class TeachableAPI:
         self.config = self.get_config(conf_file)
         if self.config:
             defaults = self.config['DEFAULT']
-            self.notif_status = shelve.open(defaults['notifications_db'])
-            self.logger.debug('Using {} as notifications_db'.format(defaults['notifications_db']))
+            cache_dir = os.path.join(sys.prefix, 'var', 'cache')
+            if not os.path.exists(cache_dir):
+                self.logger.debug('{} not found -> Creating'.format(cache_dir))
+                os.makedirs(cache_dir)
+            notif_path = os.path.join(cache_dir, defaults['notifications_db'])
+            self.notif_status = shelve.open(notif_path)
+            self.logger.debug('Using {} as notifications_db'.format(notif_path))
             self.site_url = defaults['site_url']
             self.email_regex = re.compile(defaults['email_regex'])
             self.session = requests.Session()
@@ -65,19 +70,19 @@ class TeachableAPI:
             self.cache_file = defaults['cache_file']
             # self.session.headers.update({'x-test': 'true'})
             self.session.headers.update({'Origin': self.site_url})
-            self.expire_cache(os.path.join(dir_path, self.cache_file))
-            self.prepare_cache(os.path.join(dir_path, self.cache_file))
-
+            self.expire_cache(os.path.join(cache_dir, self.cache_file))
+            self.prepare_cache(os.path.join(cache_dir, self.cache_file))
         else:
             sys.exit(1)
 
     def __del__(self):
-        if self.cached_data:
-            self.cached_data.sync()
-            self.cached_data.close()
-        if self.notif_status:
-            self.notif_status.sync()
-            self.notif_status.close()
+        if self.config:
+            if self.cached_data:
+                self.cached_data.sync()
+                self.cached_data.close()
+            if self.notif_status:
+                self.notif_status.sync()
+                self.notif_status.close()
 
     def get_config(self, configfile):
         """Gets config options"""
