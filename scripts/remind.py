@@ -2,10 +2,8 @@
 import argparse
 import datetime
 import logging
-import logging.config
-from configparser import ConfigParser
-import os.path
 import os
+import os.path
 import sys
 from email.utils import formataddr
 
@@ -16,27 +14,6 @@ from email_utils.email_utils import EmailConnection
 from email_utils.email_utils import render_template
 from teachable.api import TeachableAPI
 from teachable.user import User
-
-
-def setup_logging(logconf):
-    if os.path.exists(logconf):
-        logging.debug('Found logconf in {}'.format(logconf))
-        lgc = ConfigParser()
-        lgc.read(logconf)
-        if lgc.has_section('handler_rotatingHandler'):
-            d = lgc['handler_rotatingHandler']
-            args = d.get('args', '()')
-            logfilename = eval(args)[0]
-            logdirname = os.path.dirname(logfilename)
-            if not os.path.exists(logdirname):
-                os.makedirs(logdirname)
-        logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
-        lg = logging.getLogger(__name__)
-    else:
-        logging.error('Log conf doesn\'t exist [{}]'.format(logconf))
-        logging.error('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
-        sys.exit()
-    return lg
 
 
 def parse_arguments():
@@ -54,8 +31,8 @@ def parse_arguments():
 
 def remind_app(args):
     """Main application"""
-    logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
     api = TeachableAPI()
+    logger = logging.getLogger(__name__)
     config = api.config
     #   override_mail = 'stefano.mosconi@britemind.io'
     defaults = config['DEFAULT']

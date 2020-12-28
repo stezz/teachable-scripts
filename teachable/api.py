@@ -7,6 +7,7 @@ import shelve
 import os.path
 import os
 import time
+import logging.config
 from configparser import ConfigParser
 import logging
 from teachable.school import School
@@ -41,7 +42,7 @@ class TeachableAPI:
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
 
     def __init__(self, config_file=None):
-        self.logger = logging.getLogger('TeachableAPI')
+        self.logger = self.setup_logging(os.path.join(sys.prefix, 'etc', 'logconf.ini'))
         self.usecache = True
         self._school = None
         self._courses = None
@@ -83,6 +84,29 @@ class TeachableAPI:
             if self.notif_status:
                 self.notif_status.sync()
                 self.notif_status.close()
+
+    @staticmethod
+    def setup_logging(logconf):
+        if os.path.exists(logconf):
+            logging.debug('Found logconf in {}'.format(logconf))
+            lgc = ConfigParser()
+            lgc.read(logconf)
+            # This is a bit of a hack but making sure that the directory
+            # where the logs have to be stored exists is mandatory
+            if lgc.has_section('handler_rotatingHandler'):
+                d = lgc['handler_rotatingHandler']
+                args = d.get('args', '()')
+                logfilename = eval(args)[0]
+                logdirname = os.path.dirname(logfilename)
+                if not os.path.exists(logdirname):
+                    os.makedirs(logdirname)
+            logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
+            lg = logging.getLogger(__name__)
+        else:
+            logging.error('Log conf doesn\'t exist [{}]'.format(logconf))
+            logging.error('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
+            sys.exit(1)
+        return lg
 
     def get_config(self, configfile):
         """Gets config options"""
