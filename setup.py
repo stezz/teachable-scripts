@@ -23,7 +23,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="teachable-school-manager",  # Required
-    version="1.2.0",  # Required
+    version="1.2.1",  # Required
     description="Manage your Teachable school using the unofficial Teachable API",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
@@ -37,8 +37,8 @@ setup(
         #   5 - Production/Stable
         "Development Status :: 4 - Beta",
         # Indicate who your project is intended for
-        "Intended Audience :: Users",
-        "Topic :: Scripts :: Teachable",
+        "Intended Audience :: Developers",
+        "Topic :: Education",
         # Pick your license as you wish
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
