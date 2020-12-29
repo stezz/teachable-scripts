@@ -14,6 +14,7 @@ from teachable.school import School
 from teachable.user import User
 from teachable.course import Course
 import re
+# from appdirs import *
 
 
 class TeachableAPI:
@@ -41,8 +42,25 @@ class TeachableAPI:
     URL_ENROLLED_USER = '/admin/users/USER_ID/enrolled'
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
 
+    TEACHABLE_ETC_DIR = os.path.join(sys.prefix, 'etc', 'teachable')
+    TEACHABLE_CACHE_DIR = os.path.join(sys.prefix, 'var', 'cache', 'teachable')
+    TEACHABLE_LOG_DIR = os.path.join(sys.prefix, 'var', 'log', 'teachable')
+    TEACHABLE_TEMPLATES_DIR = os.path.join(sys.prefix, 'templates', 'teachable')
+    DEFAULT_DIRS = {'TEACHABLE_LOG_DIR': TEACHABLE_LOG_DIR,
+                    'TEACHABLE_ETC_DIR': TEACHABLE_ETC_DIR,
+                    'TEACHABLE_CACHE_DIR': TEACHABLE_CACHE_DIR,
+                    'TEACHABLE_TEMPLATES_DIR': TEACHABLE_TEMPLATES_DIR}
+
     def __init__(self, config_file=None):
-        self.logger = self.setup_logging(os.path.join(sys.prefix, 'etc', 'logconf.ini'))
+        # Initializing all the needed directories
+        for defaultdir in self.DEFAULT_DIRS.keys():
+            logging.basicConfig(level=logging.DEBUG)
+            tmp_log = logging.getLogger(__name__)
+            os.environ[defaultdir] = self.DEFAULT_DIRS[defaultdir]
+            if not os.path.exists(self.DEFAULT_DIRS[defaultdir]):
+                tmp_log.debug('{} not found -> Creating'.format(self.DEFAULT_DIRS[defaultdir]))
+                os.makedirs(self.DEFAULT_DIRS[defaultdir])
+        self.logger = self.setup_logging(os.path.join(self.DEFAULT_DIRS['TEACHABLE_ETC_DIR'], 'logconf.ini'))
         self.usecache = True
         self._school = None
         self._courses = None
@@ -50,13 +68,13 @@ class TeachableAPI:
         self.session = None
         self.cached_data = None
         if not config_file:
-            conf_file = os.path.join(sys.prefix, 'etc', 'config.ini')
+            conf_file = os.path.join(self.DEFAULT_DIRS['TEACHABLE_ETC_DIR'], 'config.ini')
         else:
             conf_file = config_file
         self.config = self.get_config(conf_file)
         if self.config:
             defaults = self.config['DEFAULT']
-            cache_dir = os.path.join(sys.prefix, 'var', 'cache')
+            cache_dir = self.DEFAULT_DIRS['TEACHABLE_CACHE_DIR']
             if not os.path.exists(cache_dir):
                 self.logger.debug('{} not found -> Creating'.format(cache_dir))
                 os.makedirs(cache_dir)
@@ -89,24 +107,12 @@ class TeachableAPI:
     def setup_logging(logconf):
         if os.path.exists(logconf):
             logging.debug('Found logconf in {}'.format(logconf))
-            lgc = ConfigParser()
-            lgc.read(logconf)
-            # This is a bit of a hack but making sure that the directory
-            # where the logs have to be stored exists is mandatory
-            if lgc.has_section('handler_rotatingHandler'):
-                d = lgc['handler_rotatingHandler']
-                args = d.get('args', '()')
-                logfilename = eval(args)[0]
-                logdirname = os.path.dirname(logfilename)
-                if not os.path.exists(logdirname):
-                    os.makedirs(logdirname)
             logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
-            lg = logging.getLogger(__name__)
         else:
             logging.error('Log conf doesn\'t exist [{}]'.format(logconf))
             logging.error('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
-            sys.exit(1)
-        return lg
+            logging.info('Using default logging configuration')
+        return logging.getLogger(__name__)
 
     def get_config(self, configfile):
         """Gets config options"""
@@ -237,7 +243,7 @@ class TeachableAPI:
         else:
             return [User(self, user['email']) for user in user_list]
 
-    def _get_last_notif(self, email: str) -> datetime.date:
+    def get_last_notif(self, email: str) -> datetime.date:
         """Returns the date of the last notification sent to the user
 
         :param email: email of the user you are interested into
@@ -252,7 +258,7 @@ class TeachableAPI:
             notified = datetime.date(1970, 1, 1)
         return notified
 
-    def _set_last_notif(self, email, newdate):
+    def set_last_notif(self, email, newdate):
         self.notif_status[email] = newdate
         self.notif_status.sync()
 
@@ -330,30 +336,7 @@ class TeachableAPI:
         resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
         return json.loads(resp)
 
-    def add_user_to_school(self, userdict, course_id):
-        # TODO Pass a User and a Course object here
-        users_json_array = []
-        if self.check_email(userdict['email']):
-            user_json = {
-                "email": userdict['email'],
-                "name": userdict['fullname'],
-                "password": None,
-                "role": "student",
-                "course_id": course_id,
-                "unsubscribe_from_marketing_emails": 'false'
-            }
-            users_json_array.append(user_json)
-        payload = {
-            "user_list": users_json_array,
-            "course_id": course_id,
-            "coupon_code": None,
-            "users_role": "student",
-            "author_bio_data": {}
-        }
-        resp = self._post_json_at(self.URL_IMPORT_USERS, json.dumps(payload))
-        return json.loads(resp)
-
-    def _add_user_to_school(self, user: User, course: Course = None) -> str:
+    def add_user_to_school(self, user: User, course: Course = None) -> str:
         """
         Adds a User to a school and enroll to a specific Course if provided
 
@@ -439,7 +422,7 @@ class TeachableAPI:
 
     def _get_json_at(self, path):
         if self.usecache and path in self.cached_data:
-            self.logger.info(("Found cached data for " + path))
+            self.logger.debug(("Found cached data for " + path))
             return self.cached_data[path]
         else:
             full_url = self.site_url + path

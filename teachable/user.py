@@ -45,7 +45,6 @@ class User:
             self.logger.error("Can't set the name of {} as it already exists on Teachable".
                               format(self._name))
 
-
     @property
     def school(self):
         # school getter property
@@ -57,13 +56,13 @@ class User:
     def notified(self):
         # notified getter property
         if not self._notified:
-            self._notified = self.api._get_last_notif(self.email)
+            self._notified = self.api.get_last_notif(self.email)
         return self._notified
 
     @notified.setter
     def notified(self, newdate):
         # notified setter property
-        self.api._set_last_notif(self.email, newdate)
+        self.api.set_last_notif(self.email, newdate)
         self._notified = newdate
 
     #    @property
@@ -113,7 +112,7 @@ class User:
         has valid email """
         if self.exists is not True:
             if self.api.check_email(self.email):
-                new = self.api._add_user_to_school(self, course)
+                new = self.api.add_user_to_school(self, course)
                 if new['message'] == 'Users imported':
                     # self.logger.info('Waiting Teachable to update backend')
                     time.sleep(1)
@@ -213,7 +212,5 @@ class User:
     def enroll(self, course):
         return self.api.enroll_user_to_course(self, course)
 
-
     def unenroll(self, course):
         return self.api.unenroll_user_from_course(self, course)
-

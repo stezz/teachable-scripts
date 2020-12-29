@@ -23,7 +23,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="teachable-school-manager",  # Required
-    version="1.2.1",  # Required
+    version="1.2.2",  # Required
     description="Manage your Teachable school using the unofficial Teachable API",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
@@ -55,10 +55,11 @@ setup(
     ],  # Optional
     extras_require={"dev": []},  # Optional
     dependency_links=[],
-    data_files=[("etc", ["etc/config_example.ini", "etc/logconf.ini"]),
-                ("templates", ["templates/email_inactive.txt",
-                               "templates/email_notstarted.txt",
-                               "templates/weekly_report.html"])],
+    # these directories need to be synced with whatever is in TeachableAPI as DEFAULT_DIRS
+    data_files=[(path.join("etc", "teachable"), ["etc/config_example.ini", "etc/logconf.ini"]),
+                (path.join('templates', 'teachable'), ["templates/email_inactive.txt",
+                                                       "templates/email_notstarted.txt",
+                                                       "templates/weekly_report.html"])],
     entry_points={"console_scripts": ["remind=scripts.remind:main", "enroll=scripts.enroll:main"]},  # Optional
     # scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional

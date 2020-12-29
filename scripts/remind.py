@@ -4,7 +4,6 @@ import datetime
 import logging
 import os
 import os.path
-import sys
 from email.utils import formataddr
 
 import pytablewriter as ptw
@@ -42,7 +41,7 @@ def remind_app(args):
     smtp_port = defaults['smtp_port']
     smtp_server = defaults['smtp_server']
     smtp_from = defaults['smtp_from']
-    templates_dir = os.path.join(sys.prefix, defaults['templates_dir'])
+    templates_dir = api.TEACHABLE_TEMPLATES_DIR
     now = datetime.datetime.now()
     logger.info('Connecting to email server ({})'.format(smtp_server))
     server_str = smtp_server + ':' + str(smtp_port)
@@ -135,7 +134,7 @@ def remind_app(args):
                 subject = 'Weekly report for {course} course'.format(course=course)
                 message = render_template(os.path.join(templates_dir, 'weekly_report.html'),
                                           msg_dict)
-                since_last_notif = (today - api._get_last_notif(email_addr)).days
+                since_last_notif = (today - api.get_last_notif(email_addr)).days
                 logger.info('Preparing the message for ' + to_addr)
                 mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                              message_type='html', subject=subject, message=message,
@@ -144,7 +143,7 @@ def remind_app(args):
                     if since_last_notif >= notif_freq:
                         logger.info('Sending report to {}'.format(to_addr))
                         server.send(mail, bcc=smtp_user)
-                        api._set_last_notif(email_addr, today)
+                        api.set_last_notif(email_addr, today)
                 else:
                     logger.info('[DRYRUN] Not sending email to {}'.format(to_addr))
 
