@@ -12,6 +12,7 @@ requests = "*"
 pytablewriter = {extras = ["excel", "html"], version = "*"}
 pyexcel-xlsx = "*"
 pyexcel = "*"
+schedule = "*"
 
 [requires]
 python_version = "3.9"

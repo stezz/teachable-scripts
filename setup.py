@@ -23,7 +23,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="teachable-school-manager",  # Required
-    version="1.2.2",  # Required
+    version="1.2.3",  # Required
     description="Manage your Teachable school using the unofficial Teachable API",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
@@ -52,6 +52,7 @@ setup(
         "pyexcel-xlsx==0.6.0",
         "pytablewriter[excel,html]==0.58.0",
         "requests==2.25.0",
+        "schedule==0.6.0",
     ],  # Optional
     extras_require={"dev": []},  # Optional
     dependency_links=[],
@@ -60,7 +61,9 @@ setup(
                 (path.join('templates', 'teachable'), ["templates/email_inactive.txt",
                                                        "templates/email_notstarted.txt",
                                                        "templates/weekly_report.html"])],
-    entry_points={"console_scripts": ["remind=scripts.remind:main", "enroll=scripts.enroll:main"]},  # Optional
+    entry_points={"console_scripts": ["remind=scripts.remind:main",
+                                      "enroll=scripts.enroll:main",
+                                      "scheduler=scripts.scheduler:main"]},  # Optional
     # scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional
         "Bug Reports": "https://github.com/stezz/teachable-scripts/issues",
