@@ -1,0 +1,20 @@
+# This is an example docker-compose.yml file
+# You should adapt this to your own env if you want to use it
+#
+# docker-compose up -d teachable
+#
+# will do the trick once you have configured it properly
+version: "3.8"
+
+services:
+  teachable:
+    image: instezz/teachable-school-manager
+    restart: always
+    volumes:
+      - /etc/teachable:/usr/local/etc/teachable
+      - /var/log/teachable:/usr/local/var/log/teachable
+      - /var/cache/teachable:/usr/local/var/cache/teachable
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+
+
