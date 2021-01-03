@@ -8,11 +8,11 @@ from email.utils import formataddr
 
 import pytablewriter as ptw
 
-from email_utils.email_utils import Email
-from email_utils.email_utils import EmailConnection
-from email_utils.email_utils import render_template
-from teachable.api import TeachableAPI
-from teachable.user import User
+from ..utils.email_utils import Email
+from ..utils.email_utils import EmailConnection
+from ..utils.email_utils import render_template
+from ..api import TeachableAPI
+from ..user import User
 
 
 def parse_arguments():

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import time
-from teachable.school import School
+from .school import School
 import logging
 
 

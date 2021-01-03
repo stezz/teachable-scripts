@@ -13,7 +13,7 @@ from io import open
 from os import path
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, find_namespace_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -23,13 +23,14 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="teachable-school-manager",  # Required
-    version="1.2.4",  # Required
+    version="1.2.5",  # Required
     description="Manage your Teachable school using the unofficial Teachable API",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
     url="https://github.com/stezz/teachable-scripts",  # Optional
     author="Stefano Mosconi",  # Optional
     author_email="stefano.mosconi@gmail.com",  # Optional
+    package_dir={"": "src"},
     classifiers=[  # Optional
         # How mature is this project? Common values are
         #   3 - Alpha
@@ -44,7 +45,8 @@ setup(
         "Programming Language :: Python :: 3",
     ],
     keywords="scripts teachable",  # Optional
-    packages=find_packages(exclude=["contrib", "docs", "tests"]),  # Required
+    packages=find_namespace_packages("src", exclude=["contrib", "docs", "tests"]),  # Required
+    # packages=["teachable"],  # Required
     python_requires=">3.7, <4",
     install_requires=[
         "jinja2==2.11.2",
@@ -57,13 +59,13 @@ setup(
     extras_require={"dev": []},  # Optional
     dependency_links=[],
     # these directories need to be synced with whatever is in TeachableAPI as DEFAULT_DIRS
-    data_files=[(path.join("etc", "teachable"), ["etc/config_example.ini", "etc/logconf.ini"]),
+    data_files=[(path.join("etc", "teachable"), ["src/etc/config_example.ini", "src/etc/logconf.ini"]),
                 (path.join('templates', 'teachable'), ["templates/email_inactive.txt",
                                                        "templates/email_notstarted.txt",
                                                        "templates/weekly_report.html"])],
-    entry_points={"console_scripts": ["remind=scripts.remind:main",
-                                      "enroll=scripts.enroll:main",
-                                      "scheduler=scripts.scheduler:main"]},  # Optional
+    entry_points={"console_scripts": ["remind=teachable.scripts.remind:main",
+                                      "enroll=teachable.scripts.enroll:main",
+                                      "scheduler=teachable.scripts.scheduler:main"]},  # Optional
     # scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional
         "Bug Reports": "https://github.com/stezz/teachable-scripts/issues",

@@ -1,9 +1,8 @@
 # coding: utf8
 import argparse
-import string
-from User import User
-from TeachableAPI import TeachableAPI
-from School import School
+
+from ..api import TeachableAPI
+from ..school import School
 
 parser = argparse.ArgumentParser(description='''Get a Leaderboard CSV in just
 one command. 

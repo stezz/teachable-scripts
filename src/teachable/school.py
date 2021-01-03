@@ -1,4 +1,4 @@
-from teachable.course import Course
+from .course import Course
 
 
 class School:

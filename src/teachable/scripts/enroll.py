@@ -1,8 +1,8 @@
 # coding: utf8
 import argparse
-from teachable.user import User
-from teachable.course import Course
-from teachable.api import TeachableAPI
+from ..user import User
+from ..course import Course
+from ..api import TeachableAPI
 import pyexcel as px
 import os
 import logging

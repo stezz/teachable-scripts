@@ -10,9 +10,9 @@ import time
 import logging.config
 from configparser import ConfigParser
 import logging
-from teachable.school import School
-from teachable.user import User
-from teachable.course import Course
+from .school import School
+from .user import User
+from .course import Course
 import re
 # from appdirs import *
 
