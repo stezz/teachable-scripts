@@ -186,8 +186,6 @@ You will find logs for all of this in `/usr/local/var/log/teachable.log`
 ## Cache and rate limits
 To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.
 
-The cache path can be changed modifying the variable `CACHE_PATH`, by default it creates a file called `teachable_cache.out` in the same folder
-
 The default cache file expiration is set to 3 days in the `config_example.ini`, but you can configure that how you want.
 
 ## Docker 
