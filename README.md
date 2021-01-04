@@ -20,38 +20,38 @@ Please take that into consideration before using this project and don't come to 
 This script has been tested with python 3.9
 
 You can find the package on PyPi 
-
-    pip install teachable-school-manager 
-
-After that you should copy the file that you find in /usr/local/etc/teachable/config_example.ini, rename it as config.ini and set your username, password and yout teachable custom domain
-
-    [DEFAULT]
-    username=YOUR_TEACHABLE_USERNAME
-    password=YOUR_TEACHABLE_PASSWORD
-    site_url=https://YOUR_TEACHABLE_URL
-
+```
+pip install teachable-school-manager 
+```
+After that you should copy the file that you find in `/usr/local/etc/teachable/config_example.ini`, rename it as `config.ini` and set your username, password and your teachable custom domain
+```python
+[DEFAULT]
+username=YOUR_TEACHABLE_USERNAME
+password=YOUR_TEACHABLE_PASSWORD
+site_url=https://YOUR_TEACHABLE_URL
+```
 alongside all the other variables that you find there
 
 ## Scripts
 
-The package will install scripts in /usr/local/bin/ so you can just call them from cmdline.
+The package will install scripts in `/usr/local/bin/` so you can just call them from cmdline.
 
 ### Enroll users to a course
-If you want to enroll a whole list of users to a new course, you can do it with this script that receives a user list Excel or CSV file (you'' only need 2 columns: 'fullname' and 'email') and a course id.
+If you want to enroll a whole list of users to a new course, you can do it with this script that receives a user list Excel or CSV file (you'll only need 2 columns: `fullname` and `email`) and a course id.
 
-Typing --help will show the parameters info
-
-    usage: enroll [-h] input_file courseId
+Typing `--help` will show the parameters info
+```
+usage: enroll [-h] input_file courseId
     
-    Mass enroll users from Excel or CSV file into a specified course
+Mass enroll users from Excel or CSV file into a specified course
+  
+positional arguments:
+  input_file  Excel or CSV file. The only needed columns are 'fullname' and 'email'
+  courseId    The id of the course they should be enrolled in
     
-    positional arguments:
-      input_file  Excel or CSV file. The only needed columns are 'fullname' and 'email'
-      courseId    The id of the course they should be enrolled in
-    
-    optional arguments:
-      -h, --help  show this help message and exit
-    ---
+optional arguments:
+  -h, --help  show this help message and exit
+```
 
 If your file is Userlist.xlsx and course id is 1234 you can enroll all the users in the file into this course by typing :
 
@@ -134,61 +134,61 @@ You can also specify an output file name by using the -o:
 
 ## Remind people to take a course
 
-There's a host of variables that you will find in config_example.ini that will help you send automatic reminders to people that are enrolled but are inactive (and have not done 100% of the course).
+There's a host of variables that you will find in `config_example.ini` that will help you send automatic reminders to people that are enrolled but are inactive (and have not done 100% of the course).
 
 The first part deals with sending emails:
-
-    # the username you use to login to your emailserver
-    smtp_user = name.surname@email.com
-    # the password you use to login to your emailserver
-    smtp_pwd = asfagrbsfva
-    # your emailserver
-    smtp_server = smtp.email.com
-    # emailserver port
-    smtp_port = 587
-    # The from friendly name you will use in your emails
-    smtp_from = 'Your Friendly User (Company)'
-
+```python
+# the username you use to login to your emailserver
+smtp_user = name.surname@email.com
+# the password you use to login to your emailserver
+smtp_pwd = asfagrbsfva
+# your emailserver
+smtp_server = smtp.email.com
+# emailserver port
+smtp_port = 587
+# The from friendly name you will use in your emails
+smtp_from = 'Your Friendly User (Company)'
+```
 Then there is a section dedicated to configure some parameters that help you decide who will receive notifications
-
-    # the frequency of the reminders (days) you will config below
-    freq = 7
-    # the amount of days of inactivity you want to give a user before sending a
-    # reminder
-    alert_days = 7
-    # The amount of days that we wait before flagging to the contact person that
-    # a user is not working enough 
-    warning = 21
-
+```python
+# the frequency of the reminders (days) you will config below
+freq = 7
+# the amount of days of inactivity you want to give a user before sending a
+# reminder
+alert_days = 7
+# The amount of days that we wait before flagging to the contact person that
+# a user is not working enough 
+warning = 21
+```
 And finally you can add as many sections as you want for as many companies you are serving through with your course. This can also be configured to send emails to everyone but pay attention, if you have plenty of users it's going to be expensive.
-
-    [ACMEINC]
-    # the frequency of the reminders (days), in case different than the default
-    # freq = 7
-    # what domain to search for the users of the specific company have in Teachable
-    emailsearch = @acme.com
-    # the contact person email you are going to send company reports to 
-    contact_email = name.surname@acme.com
-    # the contact person name you are going to send company reports to 
-    contact_name = Friendly Contact
-    # The course IDs these users are signed up to, comma separated
-    # course_id = 123513, 1243151, 235345, ...
-    course_id = 134135
-
-Once you have configured all of this you only have to fire the right script (first run with --dryrun to see what happens)
+```python
+[ACMEINC]
+# the frequency of the reminders (days), in case different than the default
+# freq = 7
+# what domain to search for the users of the specific company have in Teachable
+emailsearch = @acme.com
+# the contact person email you are going to send company reports to 
+contact_email = name.surname@acme.com
+# the contact person name you are going to send company reports to 
+contact_name = Friendly Contact
+# The course IDs these users are signed up to, comma separated
+# course_id = 123513, 1243151, 235345, ...
+course_id = 134135
+```
+Once you have configured all of this you only have to fire the right script (first run with `--dryrun` to see what happens)
 
     remind -d
     # if all goes well...
     remind
 
-You will find logs for all of this in /usr/local/var/log/teachable.log
+You will find logs for all of this in `/usr/local/var/log/teachable.log`
 
 ## Cache and rate limits
 To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.
 
-The cache path can be changed modifying the variable CACHE_PATH, by default it creates a file called teachable_cache.out in the same folder
+The cache path can be changed modifying the variable `CACHE_PATH`, by default it creates a file called `teachable_cache.out` in the same folder
 
-The default cache file expiration is set to 3 days in the config_example.ini, but you can configure that how you want.
+The default cache file expiration is set to 3 days in the `config_example.ini`, but you can configure that how you want.
 
 ## Docker 
 
@@ -196,7 +196,7 @@ You will find a Dockerfile in case you want to run this as a containerized appli
 
     docker pull instezz/teachable-school-manager:latest
 
-And also a docker-compose.yml in case you want to configure your server to use this application.
+And also a `docker-compose.yml` in case you want to configure your server to use this application.
 
 Enjoy, 
 Stefano
