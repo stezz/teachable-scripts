@@ -17,7 +17,7 @@ import re
 # from appdirs import *
 
 
-class TeachableAPI:
+class Teachable:
     URL_COURSES = '/api/v1/courses'
     URL_GET_ALL_USERS = '/api/v1/users'
     URL_SCHOOL_INFO = '/api/v1/school'

@@ -2,7 +2,7 @@
 import argparse
 from ..user import User
 from ..course import Course
-from ..api import TeachableAPI
+from ..api import Teachable
 import pyexcel as px
 import os
 import logging
@@ -34,7 +34,7 @@ def parse_arguments():
 
 def enroll_app(args):
     logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
-    api = TeachableAPI()
+    api = Teachable()
     course_id = args.courseId[0]
     input_file = args.input_file[0]
     records = px.get_records(file_name=input_file)

@@ -11,7 +11,7 @@ import pytablewriter as ptw
 from ..utils.email_utils import Email
 from ..utils.email_utils import EmailConnection
 from ..utils.email_utils import render_template
-from ..api import TeachableAPI
+from ..api import Teachable
 from ..user import User
 
 
@@ -30,7 +30,7 @@ def parse_arguments():
 
 def remind_app(args):
     """Main application"""
-    api = TeachableAPI()
+    api = Teachable()
     logger = logging.getLogger(__name__)
     config = api.config
     #   override_mail = 'stefano.mosconi@britemind.io'

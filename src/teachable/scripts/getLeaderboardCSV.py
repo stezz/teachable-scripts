@@ -1,7 +1,7 @@
 # coding: utf8
 import argparse
 
-from ..api import TeachableAPI
+from ..api import Teachable
 from ..school import School
 
 parser = argparse.ArgumentParser(description='''Get a Leaderboard CSV in just
@@ -16,7 +16,7 @@ dest='filename', help='''Specify the output file''')
 args = parser.parse_args()
 
 
-api = TeachableAPI()
+api = Teachable()
 school = School(api)
 if args.search:
     courses = api.find_courses(args.search)

@@ -18,7 +18,8 @@ class User:
         self._exists = None
         self._notified = None
         self._school = None
-        self.logger = logging.getLogger('TeachableAPI')
+        self._courses = None
+        self.logger = logging.getLogger(__name__)
 
     @property
     def reportcard(self):
@@ -107,6 +108,13 @@ class User:
                 # self.logger.info('User with {} email doesn\'t exist in this school yet'.format(self.email))
         return self._info
 
+    @property
+    def courses(self):
+        # courses getter property
+        if not self._courses and self.info:
+            self._courses = self.api.get_enrolled_courses(self.id)
+        return self._courses
+    
     def create(self, course=None):
         """Create the user on the server side, if the user doesn't exist and it
         has valid email """

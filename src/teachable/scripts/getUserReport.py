@@ -1,7 +1,7 @@
 # coding: utf8
 import argparse
 from ..user import User
-from ..api import TeachableAPI
+from ..api import Teachable
 import pytablewriter as ptw
 
 parser = argparse.ArgumentParser(description='''Get your Teachable students
@@ -39,7 +39,7 @@ args = parser.parse_args()
 # HIDE_FREE_COURSES = args.hidefree  # set to 0 to show all
 
 
-api = TeachableAPI()
+api = Teachable()
 users_mails = []
 if args.emails:
     for email in args.emails:
