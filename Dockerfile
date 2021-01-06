@@ -4,8 +4,8 @@ COPY . .
 RUN python3 setup.py sdist
 
 FROM python:3.9-slim-buster
-COPY --from=build teachable/dist/teachable-school-manager-1.2.7.6.tar.gz .
-RUN pip install teachable-school-manager-1.2.7.6.tar.gz .
+COPY --from=build teachable/dist/teachable-school-manager-1.2.7.7.tar.gz .
+RUN pip install teachable-school-manager-1.2.7.7.tar.gz
 # Installing mime-support to have the Excel files recognized
 RUN apt-get update && apt-get -y install mime-support procps
 CMD ["teachable_scheduler"]
