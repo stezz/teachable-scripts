@@ -29,7 +29,7 @@ jobs:
         python setup.py sdist
         twine upload dist/*
 #    - name: Sleep for 5 seconds
-#      uses: jakejarvis/wait-action@master
+#      uses: whatnick/wait-action@master
 #      with:
 #        time: '5s'
 #
