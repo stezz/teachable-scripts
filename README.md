@@ -1,3 +1,7 @@
+![pypi](https://img.shields.io/pypi/v/teachable-school-manager)]
+![docker](https://img.shields.io/docker/v/instezz/teachable-school-manager)
+
+
 # Teachable Scripts
 You'll find here some script to manage your Teachable school using the unofficial Teachable API.
 
