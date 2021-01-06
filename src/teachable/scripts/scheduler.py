@@ -3,7 +3,7 @@ import time
 import subprocess
 
 def remind():
-    subprocess.run(["remind"])
+    subprocess.run(["teachable_remind"])
     return
 
 def main():

@@ -1,25 +1,13 @@
 # coding: utf8
 import argparse
-from ..user import User
-from ..course import Course
-from ..api import Teachable
-import pyexcel as px
-import os
 import logging
-import sys
 import logging.config
 
+import pyexcel as px
 
-def setup_logging(logconf):
-    if os.path.exists(logconf):
-        logging.debug('Found logconf in {}'.format(logconf))
-        logging.config.fileConfig(fname=logconf, disable_existing_loggers=False)
-        lg = logging.getLogger(__name__)
-    else:
-        logging.error('Log conf doesn\'t exist [{}]'.format(logconf))
-        logging.error('we are in dir {}, sys.prefix={}'.format(os.getcwd(), sys.prefix))
-        sys.exit()
-    return lg
+from ..api import Teachable
+from ..course import Course
+from ..user import User
 
 
 def parse_arguments():
@@ -33,8 +21,8 @@ def parse_arguments():
 
 
 def enroll_app(args):
-    logger = setup_logging(os.path.join(sys.prefix, 'etc/logconf.ini'))
     api = Teachable()
+    logger = logging.getLogger(__name__)
     course_id = args.courseId[0]
     input_file = args.input_file[0]
     records = px.get_records(file_name=input_file)
