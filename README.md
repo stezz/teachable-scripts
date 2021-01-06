@@ -1,5 +1,6 @@
-![pypi](https://img.shields.io/pypi/v/teachable-school-manager)]
+![pypi](https://img.shields.io/pypi/v/teachable-school-manager)
 ![docker](https://img.shields.io/docker/v/instezz/teachable-school-manager)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/instezz/teachable-school-manager)
 
 
 # Teachable Scripts
