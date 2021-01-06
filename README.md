@@ -1,6 +1,12 @@
-![pypi](https://img.shields.io/pypi/v/teachable-school-manager)
-![docker](https://img.shields.io/docker/v/instezz/teachable-school-manager)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/instezz/teachable-school-manager)
+[![pypi][pypi-image]][pypi-link]
+[![docker][docker-v-image]][docker-link]
+[![Docker Image Size (latest by date)][docker-s-image]][docker-link]
+
+[pypi-image]: https://img.shields.io/pypi/v/teachable-school-manager
+[pypi-link]: https://pypi.org/project/teachable-school-manager/
+[docker-v-image]: https://img.shields.io/docker/v/instezz/teachable-school-manager
+[docker-link]: https://hub.docker.com/repository/docker/instezz/teachable-school-manager
+[docker-s-image]: https://img.shields.io/docker/image-size/instezz/teachable-school-manager
 
 
 # Teachable Scripts
