@@ -12,7 +12,6 @@ on:
 jobs:
   python:
     name: building-python
-    id: python-build
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +34,7 @@ jobs:
 
   docker:
     name: building-docker
-    needs: python-build
+    needs: python
     runs-on: ubuntu-latest
     steps:
       - name: Get the version
