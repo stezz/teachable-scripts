@@ -53,9 +53,10 @@ def remind_app(args):
             alert_days_int = int(config[section]['alert_days'])
             warning_days = int(config[section]['warning'])
             notif_freq = int(config[section]['freq'])
+            exclude = config[section]['exclude'].replace(" ","").split(',')
             data = []
             warn_students = []
-            users_mails = [x.email for x in api.find_many_users(config[section]['emailsearch'])]
+            users_mails = [x.email for x in api.find_many_users(config[section]['emailsearch']) if x.email not in exclude]
             # First send a reminder to all that need it
             for user_mail in users_mails:
                 user = User(api, user_mail)
