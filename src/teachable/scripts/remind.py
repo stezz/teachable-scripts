@@ -53,7 +53,10 @@ def remind_app(args):
             alert_days_int = int(config[section]['alert_days'])
             warning_days = int(config[section]['warning'])
             notif_freq = int(config[section]['freq'])
-            exclude = config[section]['exclude'].replace(" ","").split(',')
+            try:
+                exclude = config[section]['exclude'].replace(" ","").split(',')
+            except KeyError:
+                exclude = []
             data = []
             warn_students = []
             users_mails = [x.email for x in api.find_many_users(config[section]['emailsearch']) if x.email not in exclude]
