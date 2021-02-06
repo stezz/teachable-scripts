@@ -59,10 +59,23 @@ def statements_app(args):
                     k == 'teachable_payments_amount' or \
                     k == 'custom_gateway_amount' or \
                     k == 'total_amount':
+                # For whatever reason this is an int with USD value*100, rather than a str :/
                 row_data.append(row[k] / 100)
             else:
                 row_data.append(row[k])
         data.append(row_data)
+
+    headers = []
+    for k in keys:
+        if k == 'internal_gateway_amount' or \
+           k == 'teachable_payments_amount' or \
+           k == 'custom_gateway_amount' or \
+           k == 'total_amount':
+            # Making it explicit that we are talking about amounts in USD
+            headers.append(k + '_usd')
+        else:
+            headers.append(k)
+
 
     if args.format == 'csv':
         writer = ptw.CsvTableWriter()
@@ -75,7 +88,7 @@ def statements_app(args):
         writer.format_table['header']['font_size'] = 12
 
     writer.table_name = 'Earning Statements'
-    writer.headers = keys
+    writer.headers = headers
     writer.value_matrix = data
 
     if args.format == 'csv':

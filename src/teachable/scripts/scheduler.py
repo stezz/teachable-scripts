@@ -6,8 +6,9 @@ def remind():
     subprocess.run(["teachable_remind"])
     return
 
-def statements()
-    subprocess.run(["teachable_statements -e"])
+#def statements()
+#    subprocess.run(["teachable_statements -e"])
+#    return
 
 def main():
     schedule.every().saturday.at("13:15").do(remind)
