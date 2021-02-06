@@ -68,14 +68,13 @@ def statements_app(args):
     headers = []
     for k in keys:
         if k == 'internal_gateway_amount' or \
-           k == 'teachable_payments_amount' or \
-           k == 'custom_gateway_amount' or \
-           k == 'total_amount':
+                k == 'teachable_payments_amount' or \
+                k == 'custom_gateway_amount' or \
+                k == 'total_amount':
             # Making it explicit that we are talking about amounts in USD
             headers.append(k + '_usd')
         else:
             headers.append(k)
-
 
     if args.format == 'csv':
         writer = ptw.CsvTableWriter()
@@ -87,7 +86,7 @@ def statements_app(args):
         writer.format_table['header']['font_name'] = 'Calibri'
         writer.format_table['header']['font_size'] = 12
 
-    writer.table_name = 'Earning Statements'
+    writer.table_name = 'Earning Statements Teachable School'
     writer.headers = headers
     writer.value_matrix = data
 
