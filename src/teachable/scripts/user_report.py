@@ -88,13 +88,13 @@ def report_app(args):
 
     if args.format == 'csv':
         ofile = args.output_file + '.csv'
-        logger.info('Saving to ', ofile)
+        logger.info('Saving to ' + ofile)
         with open(ofile, 'w') as f:
             f.write(writer.dumps())
         f.close()
     elif args.format == 'excel':
         ofile = args.output_file + '.xlsx'
-        logger.info('Saving to ', ofile)
+        logger.info('Saving to ' + ofile)
         writer.dump(ofile)
     else:
         writer.write_table()
