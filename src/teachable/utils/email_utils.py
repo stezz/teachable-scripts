@@ -30,10 +30,15 @@ def render_template(template, vardict):
 
 
 def get_email(email):
-    if '<' in email:
-        data = email.split('<')
-        email = data[1].split('>')[0].strip()
-    return email.strip()
+    if email is not None:
+        if '<' in email:
+            data = email.split('<')
+            email = data[1].split('>')[0].strip()
+            email.strip()
+    else:
+        email = ''
+    return email
+
 
 
 class Email(object):
