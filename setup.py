@@ -23,7 +23,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="teachable-school-manager",  # Required
-    version="1.3.2",  # Required
+    version="1.4",  # Required
     description="Manage your Teachable school using the unofficial Teachable API",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
@@ -67,7 +67,8 @@ setup(
                                       "teachable_user_report=teachable.scripts.user_report:main",
                                       "teachable_remind=teachable.scripts.remind:main",
                                       "teachable_enroll=teachable.scripts.enroll:main",
-                                      "teachable_scheduler=teachable.scripts.scheduler:main"]},  # Optional
+                                      "teachable_scheduler=teachable.scripts.scheduler:main",
+                                      "teachable_statements=teachable.scripts.statements:main"]},  # Optional
     # scripts=["scripts/remind.py"],  # Optional
     project_urls={  # Optional
         "Bug Reports": "https://github.com/stezz/teachable-scripts/issues",

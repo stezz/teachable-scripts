@@ -41,6 +41,7 @@ class Teachable:
     #    -data-binary '{"course_id":int,"user_id":int}' \
     URL_ENROLLED_USER = '/admin/users/USER_ID/enrolled'
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
+    URL_STATEMENTS = '/api/v1/earnings_statements?sort_key=period_start&sort_direction=desc'
 
     TEACHABLE_ETC_DIR = os.path.join(sys.prefix, 'etc', 'teachable')
     TEACHABLE_CACHE_DIR = os.path.join(sys.prefix, 'var', 'cache', 'teachable')
@@ -182,6 +183,10 @@ class Teachable:
     def get_course_list(self):
         course_info = self._get_json_at(self.URL_COURSES)
         return course_info.get('courses')
+
+    def get_earning_statements(self):
+        statement = self._get_json_at(self.URL_STATEMENTS)
+        return statement.get('earnings_statements')
 
     def get_course_info(self, course_id):
         url_course_info = self.URL_COURSE_INFO.replace('COURSE_ID', str(course_id))
