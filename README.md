@@ -230,7 +230,7 @@ optional arguments:
 
 If you are using the Docker image this script will run every week via the `teachable_scheduler`.
 
-### Scheduler
+## Scheduler
 If you are like me you want to automate as much as possible your school management and put things in auto-pilot (which is the whole reason why I have built this suite of management scripts ;) ).
 
 That's why we have `teachable_scheduler` which should be pretty much self-explanatory:
