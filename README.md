@@ -9,9 +9,10 @@
 [docker-s-image]: https://img.shields.io/docker/image-size/instezz/teachable-school-manager?label=Docker%20image%20size
 
 
-# Teachable Scripts
-You'll find here some script to manage your Teachable school using the unofficial Teachable API.
+# Teachable School Manager 
+A complete suite to (automatically) manage your Teachable school like a pro.
 
+### Note
 This project was forked from [maxbritto's project](https://github.com/maxbritto/teachable-scripts/) which was itself forked from [buzkall's project](https://github.com/buzkall/teachable-reports-export) (thanks guys!) because of major refactoring and added features which changes the goal of the original project.
 Pull requests are accepted if you want to add new features/apis.
 
@@ -28,9 +29,11 @@ The website is done using Angular, and needs some api urls to load the content, 
 Please take that into consideration before using this project and don't come to me to ask for repairs afterwards ;)** 
 
 ## Install and Config
+
+### Install as standalone python package
 This script has been tested with python 3.9
 
-You can find the package on PyPi 
+In case you wanted just the python package you can find it on PyPi, that's how to install:
 ```commandline
 pip install teachable-school-manager 
 ```
@@ -42,6 +45,16 @@ password=YOUR_TEACHABLE_PASSWORD
 site_url=https://YOUR_TEACHABLE_URL
 ```
 alongside all the other variables that you find there
+
+### Docker 
+
+You will find a Dockerfile in case you want to build yourself your own docker image.
+
+If you just want the pre-built app this is also available in [Docker hub](https://hub.docker.com/repository/docker/instezz/teachable-school-manager), you can pull it simply by:
+```commandline
+docker pull instezz/teachable-school-manager:latest
+```
+Check the `docker-compose.yml` to configure your server to use this application.
 
 ## Scripts
 
@@ -246,14 +259,6 @@ Once you install the package you will find the code at `/usr/local/lib/python3.9
 To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.
 
 The default cache file expiration is set to 3 days in the `config_example.ini`, but you can configure that how you want.
-
-## Docker 
-
-You will find a Dockerfile in case you want to run this as a containerized application, this is also available in [Docker hub](https://hub.docker.com/repository/docker/instezz/teachable-school-manager):
-```commandline
-docker pull instezz/teachable-school-manager:latest
-```
-And also a `docker-compose.yml` in case you want to configure your server to use this application.
 
 Enjoy, 
 Stefano
