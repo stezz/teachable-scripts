@@ -206,6 +206,42 @@ teachable_remind
 ```
 You will find logs for all of this in `/usr/local/var/log/teachable.log`
 
+If you are using the Docker image this script will run every week via the `teachable_scheduler`.
+
+### Get your earning statements (and email them to you)
+You can regularly poll Teachable to get your earning statements as an Excel (default) or CSV file using the `teachable_statements` script. 
+
+By using the `--email` option the statements will be automatically sent to your email address (the one you use for sending the email that you have configured in `config.ini`) 
+
+```commandline
+usage: teachable_statements [-h] [--email] [--all] [--format [FORMAT]] [--ofile [OFILE]]
+
+Get the latest earning statement as Excel (default) or CSV. Optionally send them over email to the school owner
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --email, -e           [Optional] Send the statements to the school owner
+  --all, -a             [Optional] Get all the statements, not just the last one
+  --format [FORMAT], -f [FORMAT]
+                        Output format (excel[default], csv)
+  --ofile [OFILE], -o [OFILE]
+                        [Optional] Output file name
+```
+
+If you are using the Docker image this script will run every week via the `teachable_scheduler`.
+
+### Scheduler
+If you are like me you want to automate as much as possible your school management and put things in auto-pilot (which is the whole reason why I have built this suite of management scripts ;) ).
+
+That's why we have `teachable_scheduler` which should be pretty much self-explanatory:
+
+```python
+schedule.every().saturday.at("13:15").do(remind)
+schedule.every().saturday.at("13:15").do(statements)
+```
+Once you install the package you will find the code at `/usr/local/lib/python3.9/site-packages/teachable/scripts/scheduler.py` (and if you want to change the schedule the only way is to edit `scheduler.py` itself, I didn't find any other way)
+
+
 ## Cache and rate limits
 To avoid reaching any rate limit, the script caches the courses' data into a file using Shelve.
 
