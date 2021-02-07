@@ -118,7 +118,7 @@ If you want to do a lazy search of all the students with a specific name or emai
 teachable_user_report -s @gmail.com -o FILENAME.csv -f csv -d
 teachable_user_report -s Martin -o FILENAME.csv -f csv -d
 ```    
-## Get Leaderboard directly from Teachable site
+### Get Leaderboard directly from Teachable site
 
 With the script `teachable_leaderboard` you can get the Leaderboard, i.e. the Summary of the progress report for all the students enrolled in a specific course with just one API call.
 ```commandline
@@ -144,7 +144,7 @@ You can also specify an output file name by using the -o:
 teachable_leaderboard -o leaders.csv
 ```    
 
-## Remind people to take a course
+### Remind people to take a course
 
 This is taken care of by the `teachable_remind` script:
 ```commandline
