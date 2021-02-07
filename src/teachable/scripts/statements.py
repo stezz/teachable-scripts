@@ -131,7 +131,7 @@ def statements_app(args):
 
             to_addr = formataddr((smtp_from, smtp_user))
             from_addr = formataddr((smtp_from, smtp_user))
-            subject = 'Earning Statements'
+            subject = 'Teachable earning statements'
             message = 'Here the earning statements report.'
             logger.debug('Preparing the message for ' + to_addr)
             mail = Email(from_=from_addr, to=to_addr,
