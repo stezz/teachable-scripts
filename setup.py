@@ -13,7 +13,7 @@ from io import open
 from os import path
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages, find_namespace_packages
+from setuptools import setup, find_namespace_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -23,7 +23,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="teachable-school-manager",  # Required
-    version="1.4",  # Required
+    version="1.4.1",  # Required
     description="Manage your Teachable school using the unofficial Teachable API",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)

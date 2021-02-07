@@ -80,8 +80,11 @@ class Teachable:
                 self.logger.debug('{} not found -> Creating'.format(cache_dir))
                 os.makedirs(cache_dir)
             notif_path = os.path.join(cache_dir, defaults['notifications_db'])
+            statement_path = os.path.join(cache_dir, defaults['statements_db'])
             self.notif_status = shelve.open(notif_path)
+            self.statement_status = shelve.open(statement_path)
             self.logger.debug('Using {} as notifications_db'.format(notif_path))
+            self.logger.debug('Using {} as statements_db'.format(statement_path))
             self.site_url = defaults['site_url']
             self.email_regex = re.compile(defaults['email_regex'])
             self.session = requests.Session()
@@ -103,6 +106,9 @@ class Teachable:
             if self.notif_status:
                 self.notif_status.sync()
                 self.notif_status.close()
+            if self.statement_status:
+                self.statement_status.sync()
+                self.statement_status.close()
 
     @staticmethod
     def setup_logging(logconf):
@@ -266,7 +272,25 @@ class Teachable:
     def set_last_notif(self, email, newdate):
         self.notif_status[email] = newdate
         self.notif_status.sync()
+        
+    def get_last_statement_date(self) -> datetime.date:
+        """Returns the date of the last statement retrieved
 
+        :return: last statement date
+        :rtype: datetime.date
+        """
+        try:
+            last_statement = self.statement_status['last']
+            self.logger.debug('Last statement was dated {}'.format(last_statement))
+        except KeyError:
+            self.logger.debug('No statement was ever retrieved')
+            last_statement = datetime.date(1970, 1, 1)
+        return last_statement
+
+    def set_last_statement_date(self, newdate: datetime):
+        self.statement_status['last'] = newdate
+        self.statement_status.sync()
+        
     def find_courses(self, course):
         """Searches for courses containing the specific text
 

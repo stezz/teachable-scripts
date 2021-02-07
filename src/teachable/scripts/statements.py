@@ -1,5 +1,6 @@
 # coding: utf8
 import argparse
+import datetime
 import logging
 import logging.config
 import sys
@@ -36,7 +37,8 @@ def statements_app(args):
     send_email = args.email
     get_all = args.all
     data = []
-
+    headers = []
+    last_statement = api.get_last_statement_date()
     statements = api.get_earning_statements()
 
     if statements:
@@ -63,68 +65,83 @@ def statements_app(args):
                 row_data.append(row[k] / 100)
             else:
                 row_data.append(row[k])
-        data.append(row_data)
 
-    headers = []
-    for k in keys:
-        if k == 'internal_gateway_amount' or \
-                k == 'teachable_payments_amount' or \
-                k == 'custom_gateway_amount' or \
-                k == 'total_amount':
-            # Making it explicit that we are talking about amounts in USD
-            headers.append(k + '_usd')
+        updated = datetime.datetime.strptime(row['updated_at'], '%Y-%m-%dT%H:%M:%SZ').date()
+        # When we want all statements we really want all, disregarding the statements_db
+        if updated > last_statement or get_all is True:
+            logger.debug('New statement found, updated on {}'.format(updated))
+            data.append(row_data)
         else:
-            headers.append(k)
+            logger.debug('This statement was already retrieved, skipping (last statement date: {}'.
+                         format(last_statement))
 
-    if args.format == 'csv':
-        writer = ptw.CsvTableWriter()
+    # Saving the last statement only if we are running in default mode
+    if get_all is not True:
+        newest = datetime.datetime.strptime(statements[0]['updated_at'], '%Y-%m-%dT%H:%M:%SZ').date()
+        api.set_last_statement_date(newest)
+
+    if data:
+        for k in keys:
+            if k == 'internal_gateway_amount' or \
+                    k == 'teachable_payments_amount' or \
+                    k == 'custom_gateway_amount' or \
+                    k == 'total_amount':
+                # Making it explicit that we are talking about amounts in USD
+                headers.append(k + '_usd')
+            else:
+                headers.append(k)
+
+        if args.format == 'csv':
+            writer = ptw.CsvTableWriter()
+        else:
+            writer = ptw.ExcelXlsxTableWriter()
+            # Because honestly MS Gothic sucks as a font
+            writer.format_table['cell']['font_name'] = 'Calibri'
+            writer.format_table['cell']['font_size'] = 12
+            writer.format_table['header']['font_name'] = 'Calibri'
+            writer.format_table['header']['font_size'] = 12
+
+        writer.table_name = 'Earning Statements Teachable School'
+        writer.headers = headers
+        writer.value_matrix = data
+
+        if args.format == 'csv':
+            ofile = args.ofile + '.csv'
+            logger.info('Saving to {}'.format(ofile))
+            with open(ofile, 'w') as f:
+                f.write(writer.dumps())
+            f.close()
+        else:
+            ofile = args.ofile + '.xlsx'
+            logger.info('Saving to {}'.format(ofile))
+            writer.dump(ofile)
+
+        if send_email is True:
+            config = api.config
+            defaults = config['DEFAULT']
+            smtp_pwd = defaults['smtp_pwd']
+            smtp_user = defaults['smtp_user']
+            smtp_port = defaults['smtp_port']
+            smtp_server = defaults['smtp_server']
+            smtp_from = defaults['smtp_from']
+
+            logger.debug('Connecting to email server ({})'.format(smtp_server))
+            server_str = smtp_server + ':' + str(smtp_port)
+            server = EmailConnection(server_str, smtp_user, smtp_pwd)
+
+            to_addr = formataddr((smtp_from, smtp_user))
+            from_addr = formataddr((smtp_from, smtp_user))
+            subject = 'Earning Statements'
+            message = 'Here the earning statements report.'
+            logger.debug('Preparing the message for ' + to_addr)
+            mail = Email(from_=from_addr, to=to_addr,
+                         message_type='html', subject=subject, message=message,
+                         attachments=[ofile], message_encoding="utf-8")
+            logger.info('Sending earning statements to {}'.format(to_addr))
+            server.send(mail)
+            server.close()
     else:
-        writer = ptw.ExcelXlsxTableWriter()
-        # Because honestly MS Gothic sucks as a font
-        writer.format_table['cell']['font_name'] = 'Calibri'
-        writer.format_table['cell']['font_size'] = 12
-        writer.format_table['header']['font_name'] = 'Calibri'
-        writer.format_table['header']['font_size'] = 12
-
-    writer.table_name = 'Earning Statements Teachable School'
-    writer.headers = headers
-    writer.value_matrix = data
-
-    if args.format == 'csv':
-        ofile = args.ofile + '.csv'
-        logger.info('Saving to {}'.format(ofile))
-        with open(ofile, 'w') as f:
-            f.write(writer.dumps())
-        f.close()
-    else:
-        ofile = args.ofile + '.xlsx'
-        logger.info('Saving to {}'.format(ofile))
-        writer.dump(ofile)
-
-    if send_email is True:
-        config = api.config
-        defaults = config['DEFAULT']
-        smtp_pwd = defaults['smtp_pwd']
-        smtp_user = defaults['smtp_user']
-        smtp_port = defaults['smtp_port']
-        smtp_server = defaults['smtp_server']
-        smtp_from = defaults['smtp_from']
-
-        logger.debug('Connecting to email server ({})'.format(smtp_server))
-        server_str = smtp_server + ':' + str(smtp_port)
-        server = EmailConnection(server_str, smtp_user, smtp_pwd)
-
-        to_addr = formataddr((smtp_from, smtp_user))
-        from_addr = formataddr((smtp_from, smtp_user))
-        subject = 'Earning Statements'
-        message = 'Here the earning statements report.'
-        logger.info('Preparing the message for ' + to_addr)
-        mail = Email(from_=from_addr, to=to_addr,
-                     message_type='html', subject=subject, message=message,
-                     attachments=[ofile], message_encoding="utf-8")
-        logger.debug('Sending earning statements to {}'.format(to_addr))
-        server.send(mail)
-        server.close()
+        logger.info('No new statements were found')
 
 
 def main():
