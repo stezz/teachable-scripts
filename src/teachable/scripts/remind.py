@@ -53,6 +53,7 @@ def remind_app(args):
             alert_days_int = int(config[section]['alert_days'])
             warning_days = int(config[section]['warning'])
             notif_freq = int(config[section]['freq'])
+            max_inactivity = int(config[section]['max_inactivity'])
             try:
                 exclude = config[section]['exclude'].replace(" ","").split(',')
             except KeyError:
@@ -95,7 +96,7 @@ def remind_app(args):
                     if message:
                         mail = Email(from_=from_addr, to=to_addr, cc=cc_addr,
                                      subject=subject, message=message, message_encoding="utf-8")
-                        if since_last_notif >= notif_freq:
+                        if since_last_notif >= notif_freq and days_since <= max_inactivity:
                             if args.dryrun is not True:
                                 logger.info('Sending mail to {}'.format(to_addr))
                                 server.send(mail, bcc=smtp_user)
