@@ -23,7 +23,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="teachable-school-manager",  # Required
-    version="1.5.2",  # Required
+    version="1.5.3",  # Required
     description="Manage your Teachable school using the unofficial Teachable API",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
