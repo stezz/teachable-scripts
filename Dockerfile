@@ -1,11 +1,12 @@
+ARG PACKAGE=teachable-school-manager-1.5.1.tar.gz
 FROM python:3.9-slim-buster as build
 WORKDIR /teachable
 COPY . .
 RUN python3 setup.py sdist
 
 FROM python:3.9-slim-buster
-COPY --from=build teachable/dist/teachable-school-manager-1.5.tar.gz .
-RUN pip install teachable-school-manager-1.5.tar.gz
+COPY --from=build teachable/dist/$PACKAGE .
+RUN pip install $PACKAGE
 # Installing mime-support to have the Excel files recognized
 RUN apt-get update && apt-get -y install mime-support procps
 CMD ["teachable_scheduler"]
