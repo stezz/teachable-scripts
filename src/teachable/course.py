@@ -112,8 +112,13 @@ class Lecture:
         self.name = json_data.get('name')
         self.attachments = json_data.get('attachments')
         self.duration = 0
+        self.html = ''
         for attachment in self.attachments:
             self.duration += attachment.get('duration')
+            if 'text' in attachment.keys():
+                if attachment['text'] is not None:
+                    self.html += attachment['text']
+
         self.duration_as_text = str(datetime.timedelta(seconds=self.duration))
 
     def __str__(self):

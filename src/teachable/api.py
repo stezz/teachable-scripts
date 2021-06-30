@@ -43,10 +43,10 @@ class Teachable:
     URL_UNENROLL_USER = '/api/v1/enrollments/unenroll'
     URL_STATEMENTS = '/api/v1/earnings_statements?sort_key=period_start&sort_direction=desc'
 
-    TEACHABLE_ETC_DIR = os.path.join(sys.prefix, 'etc', 'teachable')
-    TEACHABLE_CACHE_DIR = os.path.join(sys.prefix, 'var', 'cache', 'teachable')
-    TEACHABLE_LOG_DIR = os.path.join(sys.prefix, 'var', 'log', 'teachable')
-    TEACHABLE_TEMPLATES_DIR = os.path.join(sys.prefix, 'templates', 'teachable')
+    TEACHABLE_ETC_DIR = os.path.join(sys.prefix, 'teachable', 'etc')
+    TEACHABLE_CACHE_DIR = os.path.join(sys.prefix, 'teachable', 'cache')
+    TEACHABLE_LOG_DIR = os.path.join(sys.prefix, 'teachable', 'log')
+    TEACHABLE_TEMPLATES_DIR = os.path.join(sys.prefix, 'teachable', 'templates')
     DEFAULT_DIRS = {'TEACHABLE_LOG_DIR': TEACHABLE_LOG_DIR,
                     'TEACHABLE_ETC_DIR': TEACHABLE_ETC_DIR,
                     'TEACHABLE_CACHE_DIR': TEACHABLE_CACHE_DIR,
