@@ -1,4 +1,4 @@
-ARG PACKAGE=teachable-school-manager-1.5.3.tar.gz
+ARG PACKAGE=teachable-school-manager-1.5.6.tar.gz
 FROM python:3.9-slim-buster as build
 WORKDIR /teachable
 COPY . .
